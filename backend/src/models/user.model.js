@@ -17,10 +17,24 @@ const userSchema = new mongoose.Schema(
             required: true,
             minlength: 8,
         },
+        bio:{
+            type: String,
+            default:""
+        },
         profilePic: {
             type: String,
             default: "",
         },
+        followers:[{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: []
+        }],
+        following:[{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: []
+        }]
     },
     {timestamps: true}
     // for member since... / join date
