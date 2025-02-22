@@ -27,23 +27,23 @@ export const signup = async (req, res) => {
         })
 
         if(newUser){
-            generateToken(newUser._id,res)
             await newUser.save();
+            generateToken(newUser._id,res);
 
             res.status(201).json({
                 _id: newUser._id,
                 username: newUser.username,
                 email: newUser.email,
                 profilePic: newUser.profilePic,
-                bio:user.bio,
-                joinedOn:user.createdAt
+                bio: newUser.bio,
+                joinedOn: newUser.createdAt
             });
         } else{
             res.status(400).json({message:"Invalid user data"});
         }
     } catch (error) {
         console.log("Error in signup controller", error.message); 
-        res.status(500).json({message: "Internal Server Error"});      
+        res.status(500).json({message: "Internal Server Error1"});      
     }
 };
 
@@ -75,7 +75,7 @@ export const login = async (req, res) => {
         });
     } catch (error) {
         console.log("Error in login controller", error.message);
-        res.status(500).json({message:"Internal Server Error"});
+        res.status(500).json({message:"Internal Server Error2"});
     }
 };
 
@@ -105,7 +105,7 @@ export const updateProfile = async (req,res) => {
 
     } catch (error) {
         console.log("error in updated profile:",error);
-        res.status(500).json({message:"Internal Server Error"});
+        res.status(500).json({message:"Internal Server Error3"});
     }
 };
 
