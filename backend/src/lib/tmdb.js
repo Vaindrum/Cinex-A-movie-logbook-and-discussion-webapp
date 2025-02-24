@@ -32,7 +32,7 @@ export const fetchFromTMDB = async (endpoint, queryParams = {}) => {
         return await response.json();
     } catch(error){
         console.error("Error fetching from TMDB", error.message);
-        res.status(500).json({message:"Internal Server Error"});
+        throw new Error("Failed to fetch from TMDB");
         return null;
     }
 }

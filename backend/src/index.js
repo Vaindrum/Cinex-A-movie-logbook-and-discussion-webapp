@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import movieRoutes from "./routes/movie.route.js";
+import actionRoutes from "./routes/actions.route.js";
 import { connectDB } from "./lib/db.js";
 import cookieParser from "cookie-parser";
 import { testTMDB } from "./lib/tmdb.js";
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/movies", movieRoutes);
+app.use("/api/actions", actionRoutes);
 
 app.listen(PORT, ()=>{
     console.log("server is running on port PORT: "+PORT);

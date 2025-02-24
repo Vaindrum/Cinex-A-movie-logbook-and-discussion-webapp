@@ -8,8 +8,7 @@ const likeSchema = new mongoose.Schema(
             required: true
         },
         movieId:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Movie",
+            type: Number,
             required: true
         },
         logId:{
@@ -21,6 +20,6 @@ const likeSchema = new mongoose.Schema(
     {timestamps: true}
 );
 
-const Like = mongoose.model("Like",likeSchema);
+const Likes = mongoose.model("Likes",likeSchema);
 
-export default Like;
+export default Likes;
