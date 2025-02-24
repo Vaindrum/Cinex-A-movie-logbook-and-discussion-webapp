@@ -30,7 +30,7 @@ export const followUser = async (req,res) => {
         res.status(200).json({ message: "User followed successfully." });
 
     } catch (error) {
-        console.log("Error in followUser controller", error.message);
+        console.error("Error in followUser controller", error.message);
         res.status(500).json({message:"Internal Server Error"});
     }
 };
@@ -61,7 +61,7 @@ export const unfollowUser = async (req,res) => {
         res.status(200).json({message: "Unfollowed successfully"});
         
     } catch (error) {
-        console.log("Error in unfollowUser controller", error.message);
+        console.error("Error in unfollowUser controller", error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 }
@@ -83,7 +83,7 @@ export const getUserProfile = async (req,res) => {
         res.status(200).json(user);
 
     } catch (error) {
-        console.log("Error in getUserProfile controller", error.message);
+        console.error("Error in getUserProfile controller", error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 }
