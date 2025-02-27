@@ -21,6 +21,11 @@ app.use("/api/user", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/actions", actionRoutes);
 
+
+app.all("*",(req,res) => {
+    res.status(404).json({message: "Route Not Found"});
+});
+
 app.listen(PORT, ()=>{
     console.log("server is running on port PORT: "+PORT);
     connectDB();

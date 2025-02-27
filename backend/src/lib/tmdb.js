@@ -8,7 +8,10 @@ export const fetchFromTMDB = async (endpoint, queryParams = {}) => {
     const url = new URL(`${TMDB_BASE_URL}/${endpoint}`);
 
     //some query requests still need api_key so this appends api_key at the end of query
-    queryParams.api_key = TMDB_API_KEY;
+    if(!TMDB_BEARER_TOKEN){
+        queryParams.api_key = TMDB_API_KEY;
+    }
+    
     Object.keys(queryParams).forEach((key) => url.searchParams.append(key, queryParams[key]));
 
     try{
@@ -21,18 +24,24 @@ export const fetchFromTMDB = async (endpoint, queryParams = {}) => {
             }
         };
 
-        const response = await fetch(url,options);
+        console.log("Fetching from TMDB:", url.toString());
 
-        if(response.status === 404){
+        const response = await fetch(url,options);
+        const data = await response.json();
+
+        if(!response.ok){
+            console.error("TMDB API Error:", data);
+            return null;
+        }
+
+        if(data.status_code === 34){
             return { status_code: 34};
         }
 
-        if(!response.ok) throw new Error(`TMDB API Error: ${response.statusText}`);
-
-        return await response.json();
+        return data;
+        
     } catch(error){
         console.error("Error fetching from TMDB", error.message);
-        throw new Error("Failed to fetch from TMDB");
         return null;
     }
 }

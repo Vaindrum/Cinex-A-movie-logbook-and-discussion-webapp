@@ -14,11 +14,8 @@ export const searchMovies = async(req,res) => {
 
 export const getMovieDetails = async(req, res) => {
     try {
-        const {id} = req.params;
-        const data = await fetchFromTMDB(`movie/${id}`);
-        if(!data || data.status_code === 34){
-            return res.status(404).json({message: "Movie not found"});
-        }
+        const {movieId} = req;
+        const data = await fetchFromTMDB(`movie/${movieId}`);
         res.status(200).json(data);
     } catch (error) {
         console.error("Error in getMovieDetails:", error.message);
@@ -63,6 +60,11 @@ export const getMoviesByGenre = async (req,res) => {
     try {
         const {genreId} = req.params;
         const {page = 1} = req.query;
+
+        if(isNaN(genreId) || genreId<0){
+            return res.status(400).json({message: "Invalid genre ID"});
+        }
+
         const data = await fetchFromTMDB("discover/movie", {with_genres: genreId, page});
         res.status(200).json(data);
     } catch (error) {

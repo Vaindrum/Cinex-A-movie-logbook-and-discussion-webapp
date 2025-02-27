@@ -10,11 +10,6 @@ const likeSchema = new mongoose.Schema(
         movieId:{
             type: Number,
             required: true
-        },
-        logId:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Log",
-            default: null
         }
     },
     {timestamps: true}
