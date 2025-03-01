@@ -15,6 +15,10 @@ const reviewSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        spoiler:{
+            type: Boolean,
+            default: false
+        },
         logId:{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Log",

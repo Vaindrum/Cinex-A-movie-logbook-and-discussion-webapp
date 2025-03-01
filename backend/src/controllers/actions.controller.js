@@ -92,7 +92,7 @@ export const addOrUpdateRating = async (req,res) => {
 
         if(logId){
             const logExists = await Log.exists({_id:logId, userId, movieId});
-            if(logExists){
+            if(!logExists){
                 return res.status(400).json({message: "Invalid log ID"});
             }
         }
@@ -148,7 +148,7 @@ export const deleteRating = async (req,res) => {
 export const addReview = async (req,res) => {
     try {
         const {movieId} = req;
-        const {logId,review} = req.body;
+        const {logId,review,spoiler} = req.body;
         const userId = req.user.id;
 
         if(typeof review !== "string"){
@@ -157,12 +157,17 @@ export const addReview = async (req,res) => {
 
         if(logId){
             const logExists = await Log.exists({_id:logId, userId, movieId});
-            if(logExists){
+            if(!logExists){
                 return res.status(400).json({message: "Invalid log ID"});
+            }
+
+            const reviewExists = await Review.exists({logId});
+            if(reviewExists){
+                return res.status(400).json({message: "A review already exists for that log ID"});
             }
         }
         
-        const createdReview = await Review.create({userId,movieId,review,logId: logId || null});
+        const createdReview = await Review.create({userId,movieId,review,spoiler,logId: logId || null});
         res.status(201).json({message: "Review added", review: createdReview});
         
     } catch (error) {
@@ -174,7 +179,7 @@ export const addReview = async (req,res) => {
 export const updateReview = async (req,res) => {
     try {
         const {movieId} = req;
-        const {review,reviewId} = req.body;
+        const {review,spoiler,reviewId} = req.body;
         const userId = req.user.id;
         
         if(typeof review !== "string"){
@@ -188,7 +193,7 @@ export const updateReview = async (req,res) => {
 
         const updatedReview = await Review.findOneAndUpdate(
             {_id: reviewId,userId,movieId},
-            {review},
+            {review,spoiler},
             {new: true}
         );
         if(!updatedReview) return res.status(404).json({message: "Review not found"});
@@ -225,13 +230,13 @@ export const addLog = async (req,res) => {
     try {
         const {movieId} = req;
         const userId = req.user.id;
-        const {watchedOn} = req.body;
+        const {watchedOn,rewatch} = req.body;
 
         if(watchedOn && isNaN(Date.parse(watchedOn))){
             return res.status(400).json({message: "Invalid date format for watchedOn"});
         }
 
-        const createdLog = await Log.create({userId,movieId,watchedOn: watchedOn || Date.now()});
+        const createdLog = await Log.create({userId,movieId,rewatch,watchedOn: watchedOn || Date.now()});
         await Watched.findOneAndUpdate({userId, movieId},{},{upsert: true});
         await Watchlist.deleteOne({userId,movieId});
 
@@ -247,7 +252,7 @@ export const updateLog = async (req,res) => {
     try {
         const {movieId} = req;
         const userId = req.user.id;
-        const {logId,watchedOn} = req.body;
+        const {logId,watchedOn,rewatch} = req.body;
 
         if(watchedOn && isNaN(Date.parse(watchedOn))){
             return res.status(400).json({message: "Invalid date format for watchedOn"});
@@ -255,7 +260,7 @@ export const updateLog = async (req,res) => {
 
         const log = await Log.findOneAndUpdate(
             {userId,movieId,_id:logId},
-            {watchedOn},
+            {watchedOn,rewatch},
             {new: true}
         );
         if(!log) return res.status(404).json({message: "Log not found"});

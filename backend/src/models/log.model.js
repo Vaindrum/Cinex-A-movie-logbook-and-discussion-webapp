@@ -14,6 +14,10 @@ const logSchema = new mongoose.Schema(
         watchedOn:{
             type: Date,
             default: Date.now
+        },
+        rewatch:{
+            type: Boolean,
+            default: false
         }
     },
     {timestamps: true}

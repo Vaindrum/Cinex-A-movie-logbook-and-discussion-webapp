@@ -12,11 +12,9 @@ export const searchMovies = async(req,res) => {
     }
 }
 
-export const getMovieDetails = async(req, res) => {
+export const getMovieDetails = async (movieId) => {
     try {
-        const {movieId} = req;
-        const data = await fetchFromTMDB(`movie/${movieId}`);
-        res.status(200).json(data);
+        return await fetchFromTMDB(`movie/${movieId}`);
     } catch (error) {
         console.error("Error in getMovieDetails:", error.message);
         res.status(500).json({message: "Internal Server Error"});
