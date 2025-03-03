@@ -322,24 +322,28 @@ export const getMoviePage = async (req,res) => {
     try {
         const {movieId} = req.params;
         const movieDetails = await getMovieDetails(movieId);
-        const reviews = await Review.find({movieId}).sort({_id:-1});
-
+        const reviews = await Review.find({movieId})
+                                    .populate("userId","username")
+                                    .sort({_id:-1});
+        
         const ratings = await Rating.find({movieId},{logId:1,movieId:1,rating:1,_id:0});
         const likes = await Likes.find({movieId},{userId:1,_id:0});
-
+        
         const ratingMap = new Map(ratings.map(r => [
-            (r.logId ? r.logId.toString() : r.movieId.toString(), r.rating)
+            (r.logId ? r.logId.toString() : r.movieId.toString()), r.rating
         ]));
-
-        const likesMap = new Set(likes.map(like => like.userId.toString()));
-
+        
+        
+        const likesMap = new Set(likes.map(like => like.userId._id.toString()));
+        
         const reviewsData = reviews.map(review => ({
-            reviewId: review._id,
-            userId: review.userId,
-            review: review.review,
-            spoiler: review.spoiler,
-            liked: likesMap.has(review.userId.toString()),
-            rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review.movieId.toString()) || null
+                reviewId: review._id,
+                userId: review.userId._id,
+                username: review.userId.username,
+                review: review.review,
+                spoiler: review.spoiler,
+                liked: likesMap.has(review.userId._id.toString()),
+                rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review.movieId.toString()) || null
         }));
 
         res.json({movieDetails, reviewsData })

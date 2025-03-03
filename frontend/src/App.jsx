@@ -13,6 +13,7 @@ import { useAuthStore } from './store/useAuthStore';
 
 import {Loader} from "lucide-react";
 import SignUpForm from './components/SignUpForm';
+import FilmPage from './pages/FilmPage';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth} = useAuthStore();
@@ -41,6 +42,7 @@ const App = () => {
         <Route path='/login' element={<LoginPage/>} /> */}
         <Route path='/settings' element={authUser ? <SettingsPage/>: <Navigate to="/login" />} />
         <Route path='/profile' element={authUser ? <ProfilePage/> : <Navigate to="/login" />} />
+        <Route path='/film/:movieId' element={ <FilmPage/> } />
 
       </Routes>
 
