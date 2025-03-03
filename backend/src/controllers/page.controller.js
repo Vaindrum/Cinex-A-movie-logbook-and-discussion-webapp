@@ -320,8 +320,10 @@ export const getReview = async (req,res) => {
 // INDIVIDUAL MOVIE PAGE
 export const getMoviePage = async (req,res) => {
     try {
-        const {movieId} = req.params;
-        const movieDetails = await getMovieDetails(movieId);
+        const {movieName} = req.params;
+        const movieDetails = await getMovieDetails(movieName);
+        if(!movieDetails) return res.status(404).json({message: "Movie Not Found"});
+        const movieId = movieDetails.movieId;
         const reviews = await Review.find({movieId})
                                     .populate("userId","username")
                                     .sort({_id:-1});

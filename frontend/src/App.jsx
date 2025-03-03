@@ -13,12 +13,15 @@ import { useAuthStore } from './store/useAuthStore';
 
 import {Loader} from "lucide-react";
 import SignUpForm from './components/SignUpForm';
+import LoginForm from './components/LoginForm';
 import FilmPage from './pages/FilmPage';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth} = useAuthStore();
   const [showSignUp, setshowSignUp] = useState(false);
+  const [showLogin, setshowLogin] = useState(false);
 
+  // checkAuth on every refresh
   useEffect(() => {
     checkAuth();
   }, []);
@@ -34,7 +37,7 @@ const App = () => {
 
   return (
     <div>
-      <Navbar setshowSignUp={setshowSignUp}/>
+      <Navbar setshowSignUp={setshowSignUp} setshowLogin={setshowLogin}/>
 
       <Routes>
         <Route path='/' element={<HomePage/>} />
@@ -47,6 +50,7 @@ const App = () => {
       </Routes>
 
       {showSignUp && <SignUpForm setshowSignUp={setshowSignUp} />}
+      {showLogin && <LoginForm setshowLogin={setshowLogin} />}
 
     </div>
   )

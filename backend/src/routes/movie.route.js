@@ -5,7 +5,7 @@ import { validateMovie } from "../middleware/movie.middleware.js";
 const router = express.Router();
 
 router.get("/search", searchMovies);
-router.get("/details/:movieId", validateMovie, getMovieDetails);
+router.get("/details/:movieName", getMovieDetails);
 router.get("/trending", getTrendingMovies);
 router.get("/popular", getPopularMovies);
 router.get("/top-rated", getTopRatedMovies);

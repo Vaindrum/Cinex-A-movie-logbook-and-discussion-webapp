@@ -1,5 +1,8 @@
 import { fetchFromTMDB } from "../lib/tmdb.js";
 
+// Made this because all the movie details were fetched by movieId before
+// Now I've changed it so that movie details are fetched via movieName
+
 export const validateMovie = async (req, res, next) => {
     const movieId = Number(req.params.movieId);
 
@@ -16,3 +19,4 @@ export const validateMovie = async (req, res, next) => {
     req.movieId = movieId;
     next();
 };
+

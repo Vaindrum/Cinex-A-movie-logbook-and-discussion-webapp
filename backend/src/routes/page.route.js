@@ -15,6 +15,6 @@ router.get("/reviews", protectRoute, getReviews);
 // General
 router.get("/review", getReview);
 router.get("/log", getLog);
-router.get("/details/:movieId", validateMovie, getMoviePage);
+router.get("/details/:movieName", getMoviePage);
 
 export default router;

@@ -13,17 +13,17 @@ const SignUpForm = ({ setshowSignUp }) => {
     const { signup, isSigningUp } = useAuthStore();
   
     const handleChange = (e) => {
-      setformData({ ...formData, [e.target.name]: e.target.value }); // ✅ Fix: Removed brackets around e.target.value
+      setformData({ ...formData, [e.target.name]: e.target.value }); 
     };
   
     const validateForm = () => {
-      return !formData.username || !formData.email || !formData.password; // ✅ Fix: Now returns true when fields are empty
+      return !formData.username || !formData.email || !formData.password; //  Fix: Now returns true when fields are empty
     };
   
     const handleSubmit = async (e) => {
       e.preventDefault();
-      if (validateForm()) {
-        setError("Please fill in all fields"); // ✅ Fix: Show error if fields are empty
+      if(validateForm()) {
+        setError("Please fill in all fields"); // Fix: Show error if fields are empty
         return;
       }
       setError(""); 
@@ -43,7 +43,7 @@ const SignUpForm = ({ setshowSignUp }) => {
         <form onSubmit={handleSubmit} className="flex flex-col">
           <h2 className="text-2xl font-semibold mb-4 text-center">Sign Up</h2>
 
-          {error && <p className="text-red-500 text-sm mb-2">{error}</p>} {/* ✅ Fix: Display error message */}
+          {error && <p className="text-red-500 text-sm mb-2">{error}</p>} 
 
           <input type="text" name="username" placeholder="Username" className="mb-2 p-2 border border-gray-500 bg-gray-300 text-black rounded-md focus:bg-white focus:text-black" value={formData.username} onChange={handleChange} />
           <input type="email" name="email" placeholder="Email" className="mb-2 p-2 border border-gray-500 bg-gray-300 text-black rounded-md focus:bg-white focus:text-black" value={formData.email} onChange={handleChange} />

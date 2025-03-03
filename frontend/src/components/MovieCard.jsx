@@ -8,7 +8,7 @@ const MovieCard = ({ movie, className }) => {
     return (
         <div
             className={`cursor-pointer ${className}`}
-            onClick={() => navigate(`/film/${movie.id}`)}
+            onClick={() => navigate(`/film/${movie.title}`)}
         >
             <img src={getMoviePoster(movie.poster_path)}
                 alt={movie.title}
