@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { axiosInstance } from "../lib/axios";
 import { getMoviePoster } from "../lib/poster";
-import { Heart, Star, Loader, PlayCircle, Film, Popcorn } from "lucide-react";
+import { Heart, Star, PlayCircle, Film, Popcorn } from "lucide-react";
+import Loading from "../components/Loading";
 
 const FilmPage = () => {
     const { movieId } = useParams();
     const [movie, setMovie] = useState(null);
     const [reviews, setReviews] = useState([]);
+    const [loading, setloading] = useState(true);
 
     useEffect(() => {
         const fetchMovie = async () => {
@@ -17,16 +19,20 @@ const FilmPage = () => {
                 setReviews(res.data.reviewsData);
             } catch (error) {
                 console.error("Error fetching movie:", error.message);
+            } finally{
+                setloading(false);
             }
         };
         fetchMovie();
     }, [movieId]);
 
-    if (!movie) return (
-        <div className='flex items-center justify-center h-screen'>
-            <Loader className="size-10 animate-spin" />
-        </div>
-    );
+    if(loading) return <Loading />;
+
+    if(!movie) return(
+      <div className='flex items-center justify-center h-screen'>
+        <p>Movies Not Found</p>
+      </div>
+    )
 
     return (
         <div className="text-white px-20 py-10 relative">

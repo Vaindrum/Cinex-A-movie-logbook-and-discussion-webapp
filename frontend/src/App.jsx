@@ -9,10 +9,15 @@ import SettingsPage from './pages/SettingsPage';
 
 import { useAuthStore } from './store/useAuthStore';
 
-import {Loader} from "lucide-react";
 import SignUpForm from './components/SignUpForm';
 import LoginForm from './components/LoginForm';
 import FilmPage from './pages/FilmPage';
+import FilmsPage from './pages/FilmsPage';
+import LikesPage from './pages/LikesPage';
+import WatchlistPage from './pages/WatchlistPage';
+import ReviewsPage from './pages/ReviewsPage';
+import DiaryPage from './pages/DiaryPage';
+import Loading from './components/Loading';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth} = useAuthStore();
@@ -26,11 +31,7 @@ const App = () => {
 
   console.log({authUser});
 
-  if(isCheckingAuth && !authUser) return(
-    <div className='flex items-center justify-center h-screen'>
-      <Loader className="size-10 animate-spin" />
-    </div>
-  )
+  if(isCheckingAuth && !authUser) return <Loading />;
   
 
   return (
@@ -40,8 +41,14 @@ const App = () => {
       <Routes>
         <Route path='/' element={<HomePage/>} />
         <Route path='/settings' element={authUser ? <SettingsPage/>: <Navigate to="/login" />} />
-        <Route path='/profile' element={authUser ? <ProfilePage/> : <Navigate to="/login" />} />
+        <Route path='/:username/profile' element={ <ProfilePage/>} />
         <Route path='/film/:movieId' element={ <FilmPage/> } />
+
+        <Route path='/:username/films' element={<FilmsPage/>}/>
+        <Route path='/:username/likes' element={<LikesPage/>}/>
+        <Route path='/:username/watchlist' element={<WatchlistPage/>}/>
+        <Route path='/:username/reviews' element={<ReviewsPage/>}/>
+        <Route path='/:username/diary' element={<DiaryPage/>}/>
 
       </Routes>
 

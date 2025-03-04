@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../lib/axios";
 import MovieCard from "../components/MovieCard";
+import Loading from "../components/Loading";
 
 // const MovieCard = ({ movie }) => {
 //   return (
@@ -19,6 +20,7 @@ import MovieCard from "../components/MovieCard";
 
 const MovieSection = ({ title, fetchUrl }) => {
   const [movies, setMovies] = useState([]);
+  const [loading, setloading] = useState(true);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -27,10 +29,20 @@ const MovieSection = ({ title, fetchUrl }) => {
         setMovies(res.data.results || []); // Store only results
       } catch (error) {
         console.error(`Error fetching ${title}:`, error);
+      } finally{
+        setloading(false);
       }
     };
     fetchMovies();
   }, [fetchUrl, title]);
+
+  if(loading) return <Loading />;
+
+    if(!movies) return(
+      <div className='flex items-center justify-center h-screen'>
+        <p>Movies Not Found</p>
+      </div>
+    )
 
   // console.log(`${title} Movies:`, movies);
 

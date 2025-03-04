@@ -1,4 +1,5 @@
 import { fetchFromTMDB } from "../lib/tmdb.js";
+import Movie from "../models/movie.model.js";
 
 export const searchMovieByName = async (query) => {
     // UTILITY FUNCTION
@@ -52,12 +53,26 @@ export const searchMovies = async (req, res) => {
 export const getMovieDetails = async (movieName) => {
     try {
         if (!movieName) throw new Error("Movie Name Query Missing");
+
         const movieId = await searchMovieByName(movieName);
         if (!movieId) return null;
 
         const data = await fetchFromTMDB(`movie/${movieId}?append_to_response=credits,alternative_titles,release_dates,videos,watch/providers`);
 
         // console.log(data);
+
+        const existingMovie = await Movie.findOne({ movieId });
+
+        // Add to Movie model DB for cache -> used in all getAction functions for PAGES - title,year,poster_path
+        if (!existingMovie) {
+            await Movie.create({
+                movieId: movieId,
+                title: data.title,
+                release_date: data.release_date,
+                genres: data.genres.map(g => g.name),
+                poster_path: data.poster_path
+            });
+        }
 
         return {
             movieId,
@@ -92,9 +107,34 @@ export const getMovieDetails = async (movieName) => {
 
     } catch (error) {
         console.error("Error in getMovieDetails:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
+        throw error;
     }
 }
+
+export const getMovieCache = async (movieIds) => {
+    try {
+        if(movieIds.length === 0) return new Map();
+        
+        const movies = await Movie.find(
+            {movieId: {$in: movieIds}},
+            {movieId:1,title:1,poster_path:1,release_date:1}
+        );
+        
+        return new Map(movies.map(m => [m.movieId, {
+            title: m.title,
+            poster_path: m.poster_path,
+            release_date: m.release_date
+        }]));
+
+    } catch (error) {
+        console.error("Error in getMovieCache:",error.message);
+        throw error;
+    }
+};
+
+
+
+
 
 export const getTrendingMovies = async (req, res) => {
     try {

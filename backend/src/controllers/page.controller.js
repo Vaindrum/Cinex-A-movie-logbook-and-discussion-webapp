@@ -5,87 +5,94 @@ import Watchlist from "../models/watchlist.model.js";
 import Log from "../models/log.model.js";
 import Review from "../models/review.model.js";
 import Comment from "../models/comment.model.js";
-import { getMovieDetails } from "./movie.controller.js";
+import Movie from "../models/movie.model.js";
+import { getMovieCache, getMovieDetails } from "./movie.controller.js";
 
 // FILMS PAGE
-export const getWatched = async (req,res) => {
+export const getWatched = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const watchedMovies = await Watched.find({userId},{movieId:1,_id:0}).sort({_id:-1});
+        const userId = req.userId;
+        const watchedMovies = await Watched.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
         // a list of movieId numbers that user has watched
         const movieIds = watchedMovies.map(m => m.movieId);
 
         // finding related ratings,reviews,likes
         const ratings = await Rating.find(
-            {userId,movieId:{$in: movieIds}},
-            {movieId:1, rating:1, _id:1}
-        ).sort({_id:-1});
-        
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, rating: 1, _id: 1 }
+        ).sort({ _id: -1 });
+
         const reviews = await Review.find(
-            {userId,movieId:{$in: movieIds}},
-            {movieId:1, _id:1}
-        ).sort({_id:-1});
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, _id: 1 }
+        ).sort({ _id: -1 });
 
         const likes = await Likes.find(
-            {userId, movieId: {$in: movieIds}},
-            {movieId:1, _id:0}
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, _id: 0 }
         );
 
-        // mapping those related ratings,reviews,likes to watched movieIDs
+        // mapping those related ratings,reviews,likes and cache info to watched movieIDs
         const ratingMap = new Map();
         const reviewMap = new Map();
 
         ratings.forEach(r => {
-            if(!ratingMap.has(r.movieId)) ratingMap.set(r.movieId, r.rating);
+            if (!ratingMap.has(r.movieId)) ratingMap.set(r.movieId, r.rating);
         });
 
         reviews.forEach(r => {
-            if(!reviewMap.has(r.movieId)) reviewMap.set(r.movieId, r._id);
+            if (!reviewMap.has(r.movieId)) reviewMap.set(r.movieId, r._id);
         });
 
-        const likedMovies = new Set(likes.map(like=>like.movieId));
+        const likedMovies = new Set(likes.map(like => like.movieId));
+
+        const movieMap = await getMovieCache(movieIds);
 
         // returning response data
         const watchedData = watchedMovies.map(movie => {
             const movieId = movie.movieId;
-            return{
+            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
+            return {
                 movieId,
+                poster_path: cache.poster_path,
+                title: cache.title,
+                release_date: cache.title,
                 rating: ratingMap.get(movieId) || null,
                 reviewId: reviewMap.get(movieId) || null,
-                liked: likedMovies.has(movieId) 
+                liked: likedMovies.has(movieId)
             }
         })
 
-        res.status(200).json({watched: watchedData});
+        res.status(200).json({ watched: watchedData });
     } catch (error) {
         console.error("Error in getWatched", error.message);
-        res.status(500).json({message: "Internal Server Error"});
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
 // lIKES PAGE
-export const getLikes = async (req,res) => {
+export const getLikes = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const likedMovies = await Likes.find({userId},{movieId:1,_id:0}).sort({_id:-1});
+        const userId = req.userId;
+        const likedMovies = await Likes.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
         const movieIds = likedMovies.map(m => m.movieId);
 
 
         const ratings = await Rating.find(
-            {userId,movieId:{$in: movieIds}},
-            {movieId:1, rating:1, _id:1}
-        ).sort({_id:-1});
-        
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, rating: 1, _id: 1 }
+        ).sort({ _id: -1 });
+
         const reviews = await Review.find(
-            {userId,movieId:{$in: movieIds}},
-            {movieId:1, _id:1}
-        ).sort({_id:-1});
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, _id: 1 }
+        ).sort({ _id: -1 });
 
         const watched = await Watched.find(
-            {userId, movieId: {$in: movieIds}},
-            {movieId:1, _id:0}
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, _id: 0 }
         );
 
 
@@ -93,30 +100,30 @@ export const getLikes = async (req,res) => {
         const reviewMap = new Map();
 
         ratings.forEach(r => {
-            if(!ratingMap.has(r.movieId)) ratingMap.set(r.movieId, r.rating);
+            if (!ratingMap.has(r.movieId)) ratingMap.set(r.movieId, r.rating);
         });
 
         reviews.forEach(r => {
-            if(!reviewMap.has(r.movieId)) reviewMap.set(r.movieId, r._id);
+            if (!reviewMap.has(r.movieId)) reviewMap.set(r.movieId, r._id);
         });
 
-        const watchedMovies = new Set(watched.map(watched=>watched.movieId));
+        const watchedMovies = new Set(watched.map(watched => watched.movieId));
 
-        
+
         const likedData = likedMovies.map(movie => {
             const movieId = movie.movieId;
-            return{
+            return {
                 movieId,
                 rating: ratingMap.get(movieId) || null,
                 reviewId: reviewMap.get(movieId) || null,
-                watched: watchedMovies.has(movieId) 
+                watched: watchedMovies.has(movieId)
             }
         })
 
-        res.status(200).json({watched: likedData});
+        res.status(200).json({ watched: likedData });
     } catch (error) {
         console.error("Error in getLikes", error.message);
-        res.status(500).json({message: "Internal Server Error"});
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
@@ -124,10 +131,10 @@ export const getLikes = async (req,res) => {
 // WATCHLIST PAGE
 export const getWatchlist = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
 
         const watchlistMovies = await Watchlist.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
-        
+
         res.status(200).json({ watchlist: watchlistMovies });
     } catch (error) {
         console.error("Error in getWatchlist:", error.message);
@@ -138,25 +145,25 @@ export const getWatchlist = async (req, res) => {
 // DIARY PAGE
 export const getLogs = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         const logs = await Log.find({ userId }).sort({ _id: -1 });
 
         const logIds = logs.map(log => log._id);
 
 
         const ratings = await Rating.find(
-            {userId,logId:{$in: logIds}},
-            {logId:1, rating:1, _id:1}
+            { userId, logId: { $in: logIds } },
+            { logId: 1, rating: 1, _id: 1 }
         );
-        
+
         const reviews = await Review.find(
-            {userId,logId:{$in: logIds}},
-            {logId:1, _id:1}
+            { userId, logId: { $in: logIds } },
+            { logId: 1, _id: 1 }
         );
 
         const likes = await Likes.find(
-            {userId, movieId: {$in: logs.map(log => log.movieId)}},
-            {movieId:1, _id:0}
+            { userId, movieId: { $in: logs.map(log => log.movieId) } },
+            { movieId: 1, _id: 0 }
         );
 
         // console.log("logIds:", logIds);
@@ -167,18 +174,18 @@ export const getLogs = async (req, res) => {
 
         const reviewMap = new Map(reviews.map(r => [r.logId.toString(), r._id]));
 
-        const likedMovies = new Set(likes.map(like=>like.movieId));
+        const likedMovies = new Set(likes.map(like => like.movieId));
 
-        
+
         const logsData = logs.map(log => {
-            return{
+            return {
                 logId: log._id,
                 movieId: log.movieId,
                 watchedOn: log.watchedOn,
                 rewatch: log.rewatch,
                 rating: ratingMap.get(log._id.toString()) || null,
                 reviewId: reviewMap.get(log._id.toString()) || null,
-                liked: likedMovies.has(log.movieId) 
+                liked: likedMovies.has(log.movieId)
             }
         })
 
@@ -193,7 +200,7 @@ export const getLogs = async (req, res) => {
 // REVIEWS PAGE
 export const getReviews = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         const reviews = await Review.find({ userId }).sort({ _id: -1 });
 
         const logIds = reviews.map(review => review.logId).filter(logId => logId);
@@ -201,46 +208,48 @@ export const getReviews = async (req, res) => {
 
 
         const logs = await Log.find(
-            {_id: {$in: logIds}},
-            {_id:1, watchedOn:1, rewatch:1}
+            { _id: { $in: logIds } },
+            { _id: 1, watchedOn: 1, rewatch: 1 }
         );
 
         const ratings = await Rating.find(
-            {userId, $or: [
-                {logId: {$in: logIds}},
-                {logId: null, movieId: {$in: movieIds}}]},
-            {logId:1, rating:1, _id:1}
+            {
+                userId, $or: [
+                    { logId: { $in: logIds } },
+                    { logId: null, movieId: { $in: movieIds } }]
+            },
+            { logId: 1, rating: 1, _id: 1 }
         );
 
         const likes = await Likes.find(
-            {userId, movieId: {$in: movieIds}},
-            {movieId:1, _id:0}
+            { userId, movieId: { $in: movieIds } },
+            { movieId: 1, _id: 0 }
         );
 
-        const logMap = new Map(logs.map(log => [log._id.toString(), {watchedOn: log.watchedOn, rewatch: log.rewatch}]));
+        const logMap = new Map(logs.map(log => [log._id.toString(), { watchedOn: log.watchedOn, rewatch: log.rewatch }]));
 
         const ratingMap = new Map(ratings.map(r => [(r.logId ? r.logId.toString() : r.movieId.toString()), r.rating]));
 
-        const likedMovies = new Set(likes.map(like=>like.movieId));
+        const likedMovies = new Set(likes.map(like => like.movieId));
 
-        
+
         const reviewsData = reviews.map(review => {
             const logDetails = logMap.get(review.logId?.toString()) || {};
-            return{
+            return {
                 reviewId: review._id,
                 movieId: review.movieId,
                 review: review.review,
-                spoiler: review.spoiler, 
+                spoiler: review.spoiler,
                 createdAt: review.createdAt,
                 watchedOn: logDetails.watchedOn,
                 rewatch: logDetails.rewatch,
                 rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review?.movieId?.toString()) || null,
-                liked: likedMovies.has(review.movieId) 
+                liked: likedMovies.has(review.movieId)
             }
         })
 
         res.status(200).json({ reviewsData });
-        
+
     } catch (error) {
         console.error("Error in getReviews:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -251,14 +260,14 @@ export const getReviews = async (req, res) => {
 // INDIVIDUAL LOG
 export const getLog = async (req, res) => {
     try {
-        const {logId} = req.body;
+        const { logId } = req.body;
         const log = await Log.findById(logId);
-        if(!log) return res.status(404).json({message: "Log Not Found"});
+        if (!log) return res.status(404).json({ message: "Log Not Found" });
 
-        const rating = await Rating.findOne({logId},{rating:1,_id:0});
-        const review = await Review.findOne({logId},{review:1,spoiler:1,_id:1});
-        const liked = await Likes.exists({userId: log.userId, movieId: log.movieId});
-        const comments = review ? await Comment.find({reviewId: review._id}) : [];
+        const rating = await Rating.findOne({ logId }, { rating: 1, _id: 0 });
+        const review = await Review.findOne({ logId }, { review: 1, spoiler: 1, _id: 1 });
+        const liked = await Likes.exists({ userId: log.userId, movieId: log.movieId });
+        const comments = review ? await Comment.find({ reviewId: review._id }) : [];
 
         res.json({
             logId: log._id,
@@ -273,29 +282,29 @@ export const getLog = async (req, res) => {
 
     } catch (error) {
         console.log("Error in getLog", error.message);
-        res.status(500).json({message: "Internal Server Error"});
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
 
 // INDIVIDUAL REVIEW
-export const getReview = async (req,res) => {
+export const getReview = async (req, res) => {
     try {
-        const {reviewId} = req.body;
+        const { reviewId } = req.body;
         const review = await Review.findById(reviewId);
-        if(!review) return res.status(404).json({message: "Review Not Found"});
+        if (!review) return res.status(404).json({ message: "Review Not Found" });
 
-        const log = await Log.findById(review.logId, {watchedOn:1,rewatch:1});
-        
+        const log = await Log.findById(review.logId, { watchedOn: 1, rewatch: 1 });
+
         const rating = await Rating.findOne({
             $or: [
-                {logId: review.logId},
-                {logId: null, movieId: review.movieId}
+                { logId: review.logId },
+                { logId: null, movieId: review.movieId }
             ]
-        }, {rating:1, _id:0});
-        
-        const liked = await Likes.exists({userId: review.userId,movieId: review.movieId}); 
-        const comments = await Comment.find({reviewId});
+        }, { rating: 1, _id: 0 });
+
+        const liked = await Likes.exists({ userId: review.userId, movieId: review.movieId });
+        const comments = await Comment.find({ reviewId });
 
         res.json({
             reviewId: review._id,
@@ -312,46 +321,46 @@ export const getReview = async (req,res) => {
 
     } catch (error) {
         console.error("Error in getReview", error.message);
-        res.status(500).json({message: "Internal Server Error"});
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
 
 // INDIVIDUAL MOVIE PAGE
-export const getMoviePage = async (req,res) => {
+export const getMoviePage = async (req, res) => {
     try {
-        const {movieName} = req.params;
+        const { movieName } = req.params;
         const movieDetails = await getMovieDetails(movieName);
-        if(!movieDetails) return res.status(404).json({message: "Movie Not Found"});
+        if (!movieDetails) return res.status(404).json({ message: "Movie Not Found" });
+
         const movieId = movieDetails.movieId;
-        const reviews = await Review.find({movieId})
-                                    .populate("userId","username")
-                                    .sort({_id:-1});
-        
-        const ratings = await Rating.find({movieId},{logId:1,movieId:1,rating:1,_id:0});
-        const likes = await Likes.find({movieId},{userId:1,_id:0});
-        
+        const reviews = await Review.find({ movieId })
+            .populate("userId", "username")
+            .sort({ _id: -1 });
+
+        const ratings = await Rating.find({ movieId }, { logId: 1, movieId: 1, rating: 1, _id: 0 });
+        const likes = await Likes.find({ movieId }, { userId: 1, _id: 0 });
+
         const ratingMap = new Map(ratings.map(r => [
             (r.logId ? r.logId.toString() : r.movieId.toString()), r.rating
         ]));
-        
-        
+
         const likesMap = new Set(likes.map(like => like.userId._id.toString()));
-        
+
         const reviewsData = reviews.map(review => ({
-                reviewId: review._id,
-                userId: review.userId._id,
-                username: review.userId.username,
-                review: review.review,
-                spoiler: review.spoiler,
-                liked: likesMap.has(review.userId._id.toString()),
-                rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review.movieId.toString()) || null
+            reviewId: review._id,
+            userId: review.userId._id,
+            username: review.userId.username,
+            review: review.review,
+            spoiler: review.spoiler,
+            liked: likesMap.has(review.userId._id.toString()),
+            rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review.movieId.toString()) || null
         }));
 
-        res.json({movieDetails, reviewsData })
+        res.json({ movieDetails, reviewsData })
 
     } catch (error) {
         console.error("Error in getMoviePage", error.message);
-        res.status(500).json({message: "Internal Server Error"});
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }

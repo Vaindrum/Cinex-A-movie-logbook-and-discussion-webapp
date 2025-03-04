@@ -69,8 +69,8 @@ export const unfollowUser = async (req,res) => {
 export const getUserProfile = async (req,res) => {
     try {
         
-        const {id} = req.params;
-        const user = await User.findById(id).select("-password");
+        // const {userId} = req.params;
+        const user = await User.findById(req.userId).select("-password");
         
         if(!user){
             return res.status(404).json({message: "User not found"});
@@ -79,7 +79,7 @@ export const getUserProfile = async (req,res) => {
         await user.populate("followers","username");
         await user.populate("following","username");
         
-        console.log(`Fetched profile for user: ${id}`);
+        console.log(`Fetched profile for user: ${req.userId}`);
         res.status(200).json(user);
 
     } catch (error) {
