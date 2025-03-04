@@ -57,7 +57,7 @@ export const getWatched = async (req, res) => {
                 movieId,
                 poster_path: cache.poster_path,
                 title: cache.title,
-                release_date: cache.title,
+                release_date: cache.release_date,
                 rating: ratingMap.get(movieId) || null,
                 reviewId: reviewMap.get(movieId) || null,
                 liked: likedMovies.has(movieId)
@@ -109,18 +109,23 @@ export const getLikes = async (req, res) => {
 
         const watchedMovies = new Set(watched.map(watched => watched.movieId));
 
+        const movieMap = await getMovieCache(movieIds);
 
         const likedData = likedMovies.map(movie => {
             const movieId = movie.movieId;
+            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
             return {
                 movieId,
+                poster_path: cache.poster_path,
+                title: cache.title,
+                release_date: cache.release_date,
                 rating: ratingMap.get(movieId) || null,
                 reviewId: reviewMap.get(movieId) || null,
                 watched: watchedMovies.has(movieId)
             }
         })
 
-        res.status(200).json({ watched: likedData });
+        res.status(200).json({ liked: likedData });
     } catch (error) {
         console.error("Error in getLikes", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -135,7 +140,21 @@ export const getWatchlist = async (req, res) => {
 
         const watchlistMovies = await Watchlist.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
-        res.status(200).json({ watchlist: watchlistMovies });
+        const movieIds = watchlistMovies.map(m => m.movieId);
+        const movieMap = await getMovieCache(movieIds);
+
+        const watchlistData = watchlistMovies.map(movie => {
+            const movieId = movie.movieId;
+            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
+            return {
+                movieId,
+                poster_path: cache.poster_path,
+                title: cache.title,
+                release_date: cache.release_date,
+            }
+        })
+
+        res.status(200).json({ watchlist: watchlistData });
     } catch (error) {
         console.error("Error in getWatchlist:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -149,7 +168,7 @@ export const getLogs = async (req, res) => {
         const logs = await Log.find({ userId }).sort({ _id: -1 });
 
         const logIds = logs.map(log => log._id);
-
+        const movieIds = logs.map(log => log.movieId);
 
         const ratings = await Rating.find(
             { userId, logId: { $in: logIds } },
@@ -176,11 +195,17 @@ export const getLogs = async (req, res) => {
 
         const likedMovies = new Set(likes.map(like => like.movieId));
 
+        const movieMap = await getMovieCache(movieIds);
 
         const logsData = logs.map(log => {
+            const movieId = log.movieId;
+            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
             return {
                 logId: log._id,
                 movieId: log.movieId,
+                poster_path: cache.poster_path,
+                title: cache.title,
+                release_date: cache.release_date,
                 watchedOn: log.watchedOn,
                 rewatch: log.rewatch,
                 rating: ratingMap.get(log._id.toString()) || null,
@@ -189,7 +214,7 @@ export const getLogs = async (req, res) => {
             }
         })
 
-        res.status(200).json({ logsData });
+        res.status(200).json({ logs: logsData });
     } catch (error) {
         console.error("Error in getLogs:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
