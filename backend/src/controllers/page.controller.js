@@ -14,10 +14,9 @@ export const getWatched = async (req, res) => {
         const userId = req.userId;
         const watchedMovies = await Watched.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
-        // a list of movieId numbers that user has watched
         const movieIds = watchedMovies.map(m => m.movieId);
 
-        // finding related ratings,reviews,likes
+        // finding ratings,reviews,likes related to movies that are WATCHED
         const ratings = await Rating.find(
             { userId, movieId: { $in: movieIds } },
             { movieId: 1, rating: 1, _id: 1 }
@@ -49,10 +48,10 @@ export const getWatched = async (req, res) => {
 
         const movieMap = await getMovieCache(movieIds);
 
-        // returning response data
+
         const watchedData = watchedMovies.map(movie => {
             const movieId = movie.movieId;
-            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
+            const cache = movieMap.get(movieId) || { title: null, poster_path: null, release_date: null };
             return {
                 movieId,
                 poster_path: cache.poster_path,
@@ -113,7 +112,7 @@ export const getLikes = async (req, res) => {
 
         const likedData = likedMovies.map(movie => {
             const movieId = movie.movieId;
-            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
+            const cache = movieMap.get(movieId) || { title: null, poster_path: null, release_date: null };
             return {
                 movieId,
                 poster_path: cache.poster_path,
@@ -145,7 +144,7 @@ export const getWatchlist = async (req, res) => {
 
         const watchlistData = watchlistMovies.map(movie => {
             const movieId = movie.movieId;
-            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
+            const cache = movieMap.get(movieId) || { title: null, poster_path: null, release_date: null };
             return {
                 movieId,
                 poster_path: cache.poster_path,
@@ -199,7 +198,7 @@ export const getLogs = async (req, res) => {
 
         const logsData = logs.map(log => {
             const movieId = log.movieId;
-            const cache = movieMap.get(movieId) || {title: null, poster_path: null, release_date: null};
+            const cache = movieMap.get(movieId) || { title: null, poster_path: null, release_date: null };
             return {
                 logId: log._id,
                 movieId: log.movieId,
@@ -228,58 +227,61 @@ export const getReviews = async (req, res) => {
         const userId = req.userId;
         const reviews = await Review.find({ userId }).sort({ _id: -1 });
 
-        const logIds = reviews.map(review => review.logId).filter(logId => logId);
-        const movieIds = reviews.map(review => review.movieId);
+        const logIds = reviews.map(r => r.logId);
+        const movieIds = reviews.map(r => r.movieId);
 
+        console.log("Log IDs for fetching:", logIds);
 
-        const logs = await Log.find(
-            { _id: { $in: logIds } },
-            { _id: 1, watchedOn: 1, rewatch: 1 }
-        );
-
-        const ratings = await Rating.find(
-            {
-                userId, $or: [
+        const checkLogs = await Log.find({ _id: logIds });
+        console.log("Existing Logs in DB:", checkLogs);
+        
+        const [logs, ratings, likes, movieMap] = await Promise.all([
+            Log.find({ _id: { $in: logIds } }, { _id: 1, watchedOn: 1, rewatch: 1 }),
+            Rating.find({
+                userId,
+                $or: [
                     { logId: { $in: logIds } },
-                    { logId: null, movieId: { $in: movieIds } }]
-            },
-            { logId: 1, rating: 1, _id: 1 }
-        );
+                    { logId: null, movieId: { $in: movieIds } }
+                ]
+            }, { logId: 1, rating: 1, movieId: 1 }),
+            Likes.find({ userId, movieId: { $in: movieIds } }, { movieId: 1 }),
+            getMovieCache(movieIds)
+        ]);
+        console.log("Fetched Logs:", logs);
 
-        const likes = await Likes.find(
-            { userId, movieId: { $in: movieIds } },
-            { movieId: 1, _id: 0 }
-        );
 
         const logMap = new Map(logs.map(log => [log._id.toString(), { watchedOn: log.watchedOn, rewatch: log.rewatch }]));
-
         const ratingMap = new Map(ratings.map(r => [(r.logId ? r.logId.toString() : r.movieId.toString()), r.rating]));
-
-        const likedMovies = new Set(likes.map(like => like.movieId));
-
+        const likedMovies = new Set(likes.map(l => l.movieId));
 
         const reviewsData = reviews.map(review => {
             const logDetails = logMap.get(review.logId?.toString()) || {};
+            const cache = movieMap.get(review.movieId) || { title: null, poster_path: null, release_date: null };
+
             return {
                 reviewId: review._id,
+                logId: review.logId,
                 movieId: review.movieId,
+                poster_path: cache.poster_path,
+                title: cache.title,
+                release_date: cache.release_date,
                 review: review.review,
                 spoiler: review.spoiler,
                 createdAt: review.createdAt,
-                watchedOn: logDetails.watchedOn,
-                rewatch: logDetails.rewatch,
-                rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review?.movieId?.toString()) || null,
+                watchedOn: logDetails.watchedOn || null,
+                rewatch: logDetails.rewatch || null,
+                rating: ratingMap.get(review.logId?.toString()) || ratingMap.get(review.movieId?.toString()) || null,
                 liked: likedMovies.has(review.movieId)
-            }
-        })
+            };
+        });
 
-        res.status(200).json({ reviewsData });
-
+        res.status(200).json({ reviews: reviewsData });
     } catch (error) {
         console.error("Error in getReviews:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 
 // INDIVIDUAL LOG
@@ -315,40 +317,53 @@ export const getLog = async (req, res) => {
 // INDIVIDUAL REVIEW
 export const getReview = async (req, res) => {
     try {
-        const { reviewId } = req.body;
+        const userId = req.userId;
+        const { reviewId } = req.params;
+
         const review = await Review.findById(reviewId);
         if (!review) return res.status(404).json({ message: "Review Not Found" });
 
-        const log = await Log.findById(review.logId, { watchedOn: 1, rewatch: 1 });
+        const log = review.logId ? await Log.findById(review.logId, { watchedOn: 1, rewatch: 1 }) : null;
 
-        const rating = await Rating.findOne({
-            $or: [
-                { logId: review.logId },
-                { logId: null, movieId: review.movieId }
-            ]
-        }, { rating: 1, _id: 0 });
+        const rating = await Rating.findOne(
+            review.logId 
+                ? { logId: review.logId }
+                : { logId: null, movieId: review.movieId },
+            { rating: 1, _id: 0 }
+        );
+
+        const movie = await Movie.findOne(
+            { movieId: review.movieId },
+            { movieId: 1, title: 1, poster_path: 1, release_date: 1 }
+        );
 
         const liked = await Likes.exists({ userId: review.userId, movieId: review.movieId });
         const comments = await Comment.find({ reviewId });
 
         res.json({
+            userId,
             reviewId: review._id,
             movieId: review.movieId,
+            poster_path: movie?.poster_path || null,
+            title: movie?.title || "Unknown",
+            release_date: movie?.release_date || null,
             review: review.review,
             spoiler: review.spoiler,
-            logId: log?.log._id || null,
-            watchedOn: log?.log.watchedOn || review.createdAt,
-            rewatch: log?.log.rewatch || false,
+            logId: log?._id || null,
+            watchedOn: log?.watchedOn || null,
+            createdAt: review.createdAt,
+            rewatch: log?.rewatch || false,
             rating: rating?.rating || null,
             liked: !!liked,
             comments
-        })
+        });
 
     } catch (error) {
         console.error("Error in getReview", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 
 // INDIVIDUAL MOVIE PAGE

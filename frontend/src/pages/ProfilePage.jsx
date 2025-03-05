@@ -80,7 +80,7 @@ const ProfilePage = () => {
           {["films", "diary", "reviews", "watchlist", "likes"].map((item) => (
             <p
               key={item}
-              onClick={() => navigate(`/${authUser.username}/${item}`)}
+              onClick={() => navigate(`/${username}/${item}`)}
               className="cursor-pointer transition-all duration-200 hover:text-gray-300"
             >
               {item.charAt(0).toUpperCase() + item.slice(1)}

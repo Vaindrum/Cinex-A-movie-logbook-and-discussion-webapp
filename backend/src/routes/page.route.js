@@ -13,7 +13,7 @@ router.get("/:username/diary", verifyUser, getLogs);
 router.get("/:username/reviews", verifyUser, getReviews); 
 
 // General
-router.get("/review", getReview);
+router.get("/:username/review/:reviewId", verifyUser, getReview);
 router.get("/log", getLog);
 router.get("/details/:movieName", getMoviePage);
 

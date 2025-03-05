@@ -18,6 +18,7 @@ import WatchlistPage from './pages/WatchlistPage';
 import ReviewsPage from './pages/ReviewsPage';
 import DiaryPage from './pages/DiaryPage';
 import Loading from './components/Loading';
+import ReviewPage from './pages/ReviewPage';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth} = useAuthStore();
@@ -42,13 +43,16 @@ const App = () => {
         <Route path='/' element={<HomePage/>} />
         <Route path='/settings' element={authUser ? <SettingsPage/>: <Navigate to="/login" />} />
         <Route path='/:username/profile' element={ <ProfilePage/>} />
-        <Route path='/film/:movieId' element={ <FilmPage/> } />
+        <Route path='/film/:movieName' element={ <FilmPage/> } />
 
         <Route path='/:username/films' element={<FilmsPage/>}/>
         <Route path='/:username/likes' element={<LikesPage/>}/>
         <Route path='/:username/watchlist' element={<WatchlistPage/>}/>
         <Route path='/:username/reviews' element={<ReviewsPage/>}/>
         <Route path='/:username/diary' element={<DiaryPage/>}/>
+
+        <Route path='/:username/review/:reviewId' element={<ReviewPage/>}/>
+
 
       </Routes>
 

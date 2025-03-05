@@ -1,10 +1,10 @@
 import React from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Loading from '../components/Loading';
 import { axiosInstance } from '../lib/axios';
-import MovieCard from '../components/MovieCard';
+import { getMoviePoster } from '../lib/poster';
 import { useAuthStore } from '../store/useAuthStore';
 
 const DiaryPage = () => {
@@ -12,6 +12,7 @@ const DiaryPage = () => {
     const { authUser } = useAuthStore();
     const [loading, setloading] = useState(true);
     const [logs, setlogs] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchLogs = async () => {
@@ -35,13 +36,13 @@ const DiaryPage = () => {
         </div>
     )
 
-    const groupedLogs = logs.reduce((acc, log) => {
-        const date = new Date(log.watchedOn);
-        const key = `${date.toLocaleString("default", { month: "long" })} ${date.getFullYear()}`;
-        acc[key] = acc[key] || [];
-        acc[key].push(log);
-        return acc;
-      }, {});
+    // const groupedLogs = logs.reduce((acc, log) => {
+    //     const date = new Date(log.watchedOn);
+    //     const key = `${date.toLocaleString("default", { month: "long" })} ${date.getFullYear()}`;
+    //     acc[key] = acc[key] || [];
+    //     acc[key].push(log);
+    //     return acc;
+    //   }, {});
     
       return (
         <div className="max-w-4xl mx-auto p-4">
@@ -69,8 +70,8 @@ const DiaryPage = () => {
                     <tr key={log.logId} className="hover:bg-gray-800">
                       <td className="p-3">{monthYear}</td>
                       <td className="p-3">{date.getDate()}</td>
-                      <td className="p-3 flex items-center">
-                        <img src={`https://image.tmdb.org/t/p/w92${log.poster_path}`} alt={log.title} className="w-12 h-auto mr-2" />
+                      <td className="p-3 flex items-center cursor-pointer" onClick={() => navigate(`/film/${log.title.toLowerCase().replace(/\s+/g, "-")}${log.release_date ? "-" + log.release_date.split("-")[0] : ""}`)}>
+                        <img src={getMoviePoster(log.poster_path)} alt={log.title} className="w-12 h-auto mr-2" />
                         {log.title}
                       </td>
                       <td className="p-3">{new Date(log.release_date).getFullYear()}</td>

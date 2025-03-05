@@ -4,17 +4,23 @@ import { axiosInstance } from "../lib/axios";
 import { getMoviePoster } from "../lib/poster";
 import { Heart, Star, PlayCircle, Film, Popcorn } from "lucide-react";
 import Loading from "../components/Loading";
+import ActionForm from "../components/ActionForm";
+import { useAuthStore } from "../store/useAuthStore";
 
 const FilmPage = () => {
-    const { movieId } = useParams();
+    const {authUser} = useAuthStore();
+    const username = authUser.username;
+    const { movieName } = useParams();
+    // console.log(movieId);
     const [movie, setMovie] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setloading] = useState(true);
+    const [actions, setactions] = useState([]);
 
     useEffect(() => {
         const fetchMovie = async () => {
             try {
-                const res = await axiosInstance.get(`/page/details/${movieId}`);
+                const res = await axiosInstance.get(`/page/details/${movieName}`);
                 setMovie(res.data.movieDetails);
                 setReviews(res.data.reviewsData);
             } catch (error) {
@@ -23,8 +29,18 @@ const FilmPage = () => {
                 setloading(false);
             }
         };
+        const fetchActionStatus = async () => {
+            try {
+                const res = await axiosInstance.get(`/actions/${username}/${movieName}`);
+                setactions(res.data);
+                console.log("actions",username,movieName,res.data);
+            } catch (error) {
+                console.error("Error fetching actions status:", error.message);
+            }
+        }
         fetchMovie();
-    }, [movieId]);
+        fetchActionStatus();
+    }, [movieName]);
 
     if(loading) return <Loading />;
 
@@ -56,7 +72,7 @@ const FilmPage = () => {
 
                 {/* Right Column - Rating Placeholder */}
                 <div className="w-1/5 bg-gray-800 p-4 rounded-lg text-center">
-                    <p className="text-gray-500">[Placeholder for Rating, Watched, Log, Review Form]</p>
+                    <p className="text-gray-500"><ActionForm  actions={actions} /></p>
                 </div>
                 <div className="text-center mt-4">
                     <p className="text-gray-500">Rating</p>

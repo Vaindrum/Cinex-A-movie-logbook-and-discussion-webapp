@@ -1,7 +1,8 @@
 import express from "express";
-import { toggleLike, toggleWatched, toggleWatchlist, addOrUpdateRating, deleteRating, addReview, updateReview, deleteReview, addLog, updateLog, deleteLog, addComment, deleteComment } from "../controllers/actions.controller.js";
+import { toggleLike, toggleWatched, toggleWatchlist, addOrUpdateRating, deleteRating, addReview, updateReview, deleteReview, addLog, updateLog, deleteLog, addComment, deleteComment, getActions } from "../controllers/actions.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { validateMovie } from "../middleware/movie.middleware.js";
+import { verifyUser } from "../middleware/user.middleware.js";
 
 const router = express.Router();
 
@@ -22,6 +23,8 @@ router.delete("/log/:movieId", protectRoute, validateMovie, deleteLog);
 
 router.post("/comment", protectRoute, addComment);
 router.delete("/comment", protectRoute, deleteComment);
+
+router.get("/:username/:movieName", verifyUser, getActions);
 
 
 export default router;
