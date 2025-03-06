@@ -40,7 +40,7 @@ const ProfilePage = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img
-            src={profile.profilePic || "/default-avatar.png"}
+            src={profile.profilePic || "/avatar.png"}
             alt="Profile"
             className="w-20 h-20 rounded-full object-cover border"
           />
@@ -75,6 +75,7 @@ const ProfilePage = () => {
           <p className="text-gray-500">Following</p>
         </div>
       </div>
+      {/* Mini Navbar */}
       <nav className="bg-gray-900 p-4 text-white flex justify-between items-center">
         <div className="flex justify-center gap-6 text-sm sm:text-base font-light">
           {["films", "diary", "reviews", "watchlist", "likes"].map((item) => (
@@ -87,7 +88,6 @@ const ProfilePage = () => {
             </p>
           ))}
         </div>
-
       </nav>
     </div>
   );

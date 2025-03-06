@@ -8,7 +8,7 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
 
-router.put("/update-profile",protectRoute,updateProfile);
+router.patch("/update-profile",protectRoute,updateProfile);
 
 //for refresh site check user
 router.get("/check",protectRoute,checkAuth);

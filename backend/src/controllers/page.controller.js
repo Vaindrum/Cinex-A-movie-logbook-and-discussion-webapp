@@ -12,6 +12,7 @@ import { getMovieCache, getMovieDetails } from "./movie.controller.js";
 export const getWatched = async (req, res) => {
     try {
         const userId = req.userId;
+        const profilePic = req.profilePic;
         const watchedMovies = await Watched.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
         const movieIds = watchedMovies.map(m => m.movieId);
@@ -63,7 +64,7 @@ export const getWatched = async (req, res) => {
             }
         })
 
-        res.status(200).json({ watched: watchedData });
+        res.status(200).json({profilePic, watched: watchedData });
     } catch (error) {
         console.error("Error in getWatched", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -74,6 +75,7 @@ export const getWatched = async (req, res) => {
 export const getLikes = async (req, res) => {
     try {
         const userId = req.userId;
+        const profilePic = req.profilePic;
         const likedMovies = await Likes.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
         const movieIds = likedMovies.map(m => m.movieId);
@@ -124,7 +126,7 @@ export const getLikes = async (req, res) => {
             }
         })
 
-        res.status(200).json({ liked: likedData });
+        res.status(200).json({profilePic, liked: likedData });
     } catch (error) {
         console.error("Error in getLikes", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -136,6 +138,7 @@ export const getLikes = async (req, res) => {
 export const getWatchlist = async (req, res) => {
     try {
         const userId = req.userId;
+        const profilePic = req.profilePic;
 
         const watchlistMovies = await Watchlist.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
 
@@ -153,7 +156,7 @@ export const getWatchlist = async (req, res) => {
             }
         })
 
-        res.status(200).json({ watchlist: watchlistData });
+        res.status(200).json({profilePic, watchlist: watchlistData });
     } catch (error) {
         console.error("Error in getWatchlist:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -164,6 +167,7 @@ export const getWatchlist = async (req, res) => {
 export const getLogs = async (req, res) => {
     try {
         const userId = req.userId;
+        const profilePic = req.profilePic;
         const logs = await Log.find({ userId }).sort({ _id: -1 });
 
         const logIds = logs.map(log => log._id);
@@ -213,7 +217,7 @@ export const getLogs = async (req, res) => {
             }
         })
 
-        res.status(200).json({ logs: logsData });
+        res.status(200).json({profilePic, logs: logsData });
     } catch (error) {
         console.error("Error in getLogs:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -225,6 +229,7 @@ export const getLogs = async (req, res) => {
 export const getReviews = async (req, res) => {
     try {
         const userId = req.userId;
+        const profilePic = req.profilePic;
         const reviews = await Review.find({ userId }).sort({ _id: -1 });
 
         const logIds = reviews.map(r => r.logId);
@@ -275,7 +280,7 @@ export const getReviews = async (req, res) => {
             };
         });
 
-        res.status(200).json({ reviews: reviewsData });
+        res.status(200).json({profilePic, reviews: reviewsData });
     } catch (error) {
         console.error("Error in getReviews:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -318,6 +323,7 @@ export const getLog = async (req, res) => {
 export const getReview = async (req, res) => {
     try {
         const userId = req.userId;
+        const profilePic = req.profilePic;
         const { reviewId } = req.params;
 
         const review = await Review.findById(reviewId);
@@ -342,6 +348,7 @@ export const getReview = async (req, res) => {
 
         res.json({
             userId,
+            profilePic,
             reviewId: review._id,
             movieId: review.movieId,
             poster_path: movie?.poster_path || null,

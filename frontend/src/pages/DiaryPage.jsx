@@ -6,6 +6,7 @@ import Loading from '../components/Loading';
 import { axiosInstance } from '../lib/axios';
 import { getMoviePoster } from '../lib/poster';
 import { useAuthStore } from '../store/useAuthStore';
+import UserCard from '../components/UserCard';
 
 const DiaryPage = () => {
     const { username } = useParams();
@@ -13,12 +14,14 @@ const DiaryPage = () => {
     const [loading, setloading] = useState(true);
     const [logs, setlogs] = useState([]);
     const navigate = useNavigate();
+    const [profilePic, setprofilePic] = useState(null);
 
     useEffect(() => {
         const fetchLogs = async () => {
             try {
                 const res = await axiosInstance.get(`/page/${username}/diary`);
                 setlogs(res.data.logs ? res.data.logs.sort((a,b) => new Date(b.watchedOn) - new Date(a.watchedOn)) : []);
+                setprofilePic(res.data.profilePic || "/avatar.png");
             } catch (error) {
                 console.error("Error fetching Logs:", error)
             } finally {
@@ -46,6 +49,7 @@ const DiaryPage = () => {
     
       return (
         <div className="max-w-4xl mx-auto p-4">
+        <UserCard username={username} profilePic={profilePic} />
           <h1 className="text-xl font-semibold mb-4">{username}'s Diary</h1>
           <div className="border border-gray-600 rounded-lg overflow-hidden">
             <table className="w-full text-left border-collapse">
@@ -59,7 +63,7 @@ const DiaryPage = () => {
                   <th className="p-3">Like</th>
                   <th className="p-3">Rewatch</th>
                   <th className="p-3">Review</th>
-                  {authUser.username === username && <th className="p-3">Edit</th>}
+                  {authUser?.username === username && <th className="p-3">Edit</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-600">
@@ -79,7 +83,7 @@ const DiaryPage = () => {
                       <td className="p-3">{log.liked ? "❤️" : "—"}</td>
                       <td className="p-3">{log.rewatch ? "🔁" : "—"}</td>
                       <td className="p-3">{log.reviewId ? "✅" : "—"}</td>
-                      {authUser.username === username && (
+                      {authUser?.username === username && (
                         <td className="p-3">
                           <button className="text-blue-400 hover:underline">Edit</button>
                         </td>

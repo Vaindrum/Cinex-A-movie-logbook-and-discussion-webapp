@@ -18,7 +18,12 @@ const logSchema = new mongoose.Schema(
         rewatch:{
             type: Boolean,
             default: false
-        }
+        },
+        tags:[{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: []
+        }]
     },
     {timestamps: true}
 );

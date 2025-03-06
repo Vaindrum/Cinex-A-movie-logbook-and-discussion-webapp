@@ -5,20 +5,23 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Loading from '../components/Loading';
 import { axiosInstance } from '../lib/axios';
 import { getMoviePoster } from '../lib/poster';
+import UserCard from '../components/UserCard';
 
 
 const ReviewsPage = () => {
-  const { username } = useParams();
+  const { username} = useParams();
   const [loading, setloading] = useState(true);
   const [reviews, setreviews] = useState([]);
   const navigate = useNavigate();
+  const [profilePic, setprofilePic] = useState(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         const res = await axiosInstance.get(`/page/${username}/reviews`);
         setreviews(res.data.reviews ? res.data.reviews.sort((a, b) => new Date(b.watchedOn || b.createdAt) - new Date(a.watchedOn || a.createdAt)) : []);
-        console.log("Fetched Review:", res.data);
+        setprofilePic(res.data.profilePic || "/avatar.png");
+        // console.log("Fetched Review:", res.data);
       } catch (error) {
         console.error("Error fetching Reviews:", error.message);
       } finally {
@@ -40,6 +43,7 @@ const ReviewsPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+      <UserCard username={username} profilePic={profilePic} />
       <h1 className="text-xl font-semibold mb-4">{username}'s Reviews</h1>
       <div className="space-y-6">
         {reviews.map((review) => (

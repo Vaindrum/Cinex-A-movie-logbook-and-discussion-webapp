@@ -63,6 +63,8 @@ const HomePage = () => {
     <div className="p-6 bg-gray-900 min-h-screen text-white">
       <MovieSection title="Trending Movies" fetchUrl="/movies/trending" />
       <MovieSection title="Popular Movies" fetchUrl="/movies/popular" />
+      <MovieSection title="Now Playing Movies" fetchUrl="/movies/now-playing" />
+      <MovieSection title="Upcoming Movies" fetchUrl="/movies/upcoming" />
       <MovieSection title="Top-Rated Movies" fetchUrl="/movies/top-rated" />
     </div>
   );

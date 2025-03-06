@@ -8,19 +8,20 @@ export const searchMovieByName = async (query) => {
         if (!query) throw new Error("Query Parameter Missing");
 
         const match = query.match(/^(.*?)-(\d{4})$/);
-        const formattedName = match ? match[1] : query;
+        const movieName = match ? match[1] : query;
         const year = match ? match[2] : null;
 
-        const movieName = formattedName.replace(/-/g, " ").toLowerCase();
-
         const q = encodeURIComponent(movieName);
-        const data = await fetchFromTMDB(`search/movie?query=${q}&page=1`);
+        
+        // console.log(movieName);
+        // console.log(q);
+        // console.log(year);
+
+        const data = await fetchFromTMDB(`search/movie?query=${q}`);
 
         if (!data.results.length) return null;
 
-        const matchingMovies = data.results.filter(movie => movie.title.toLowerCase() === movieName);
-
-        // let exactMatch = data.results.find(movie => movie.title.toLowerCase() === movieName);
+        const matchingMovies = data.results.filter(movie => movie.title === movieName);
 
         if (year) {
             const exactYearMatch = matchingMovies.find(movie => movie.release_date?.startsWith(year));
@@ -53,7 +54,10 @@ export const searchMovies = async (req, res) => {
 export const getMovieDetails = async (movieName) => {
     try {
         if (!movieName) throw new Error("Movie Name Query Missing");
-
+        // const movieName = "Spider-Man:%20No%20Way%20Home";
+        // const decodedName = decodeURIComponent(movieName);
+        // console.log(decodedName); 
+        
         const movieId = await searchMovieByName(movieName);
         if (!movieId) return null;
 
@@ -165,6 +169,28 @@ export const getTopRatedMovies = async (req, res) => {
         res.status(200).json(data);
     } catch (error) {
         console.error("Error in getTopRatedMovies:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const getNowPlayingMovies = async (req, res) => {
+    try {
+        const { page = 1 } = req.query;
+        const data = await fetchFromTMDB("movie/now_playing", { page });
+        res.status(200).json(data);
+    } catch (error) {
+        console.error("Error in getNowPlayingMovies:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const getUpcomingMovies = async (req, res) => {
+    try {
+        const { page = 1 } = req.query;
+        const data = await fetchFromTMDB("movie/upcoming", { page });
+        res.status(200).json(data);
+    } catch (error) {
+        console.error("Error in getUpcomingMovies:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }

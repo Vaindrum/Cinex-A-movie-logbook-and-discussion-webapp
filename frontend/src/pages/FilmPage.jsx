@@ -9,9 +9,9 @@ import { useAuthStore } from "../store/useAuthStore";
 
 const FilmPage = () => {
     const {authUser} = useAuthStore();
-    const username = authUser.username;
+    const username = authUser ? authUser.username : null;
     const { movieName } = useParams();
-    // console.log(movieId);
+    // console.log(movieName);
     const [movie, setMovie] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setloading] = useState(true);

@@ -34,6 +34,16 @@ const userSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             default: []
+        }],
+        favourites: [{
+            type: Number,
+            ref: "Movie",
+            default: [],
+        }],
+        recent: [{
+            type: Number,
+            ref: "Movie",
+            default: [],
         }]
     },
     {timestamps: true}

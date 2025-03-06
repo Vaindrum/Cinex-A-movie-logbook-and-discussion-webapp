@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
@@ -19,11 +20,13 @@ import ReviewsPage from './pages/ReviewsPage';
 import DiaryPage from './pages/DiaryPage';
 import Loading from './components/Loading';
 import ReviewPage from './pages/ReviewPage';
+import LogoutPrompt from './components/LogoutPrompt';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth} = useAuthStore();
   const [showSignUp, setshowSignUp] = useState(false);
   const [showLogin, setshowLogin] = useState(false);
+  const [showLogout, setshowLogout] = useState(false);
 
   // checkAuth on every refresh
   useEffect(() => {
@@ -37,7 +40,8 @@ const App = () => {
 
   return (
     <div>
-      <Navbar setshowSignUp={setshowSignUp} setshowLogin={setshowLogin}/>
+      <Toaster position="top-right" reverseOrder={false} />
+      <Navbar setshowSignUp={setshowSignUp} setshowLogin={setshowLogin} setshowLogout={setshowLogout}/>
 
       <Routes>
         <Route path='/' element={<HomePage/>} />
@@ -56,8 +60,9 @@ const App = () => {
 
       </Routes>
 
-      {showSignUp && <SignUpForm setshowSignUp={setshowSignUp} />}
-      {showLogin && <LoginForm setshowLogin={setshowLogin} />}
+      {showSignUp && <SignUpForm setshowSignUp={setshowSignUp} setshowLogin={setshowLogin} />}
+      {showLogin && <LoginForm setshowLogin={setshowLogin} setshowSignUp={setshowSignUp}/>}
+      {showLogout && <LogoutPrompt setshowLogout={setshowLogout}/>}
 
     </div>
   )

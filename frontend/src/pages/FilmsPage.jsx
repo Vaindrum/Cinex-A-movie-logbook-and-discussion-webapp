@@ -4,17 +4,20 @@ import { useParams } from 'react-router-dom';
 import Loading from '../components/Loading';
 import { axiosInstance } from '../lib/axios';
 import MovieCard from '../components/MovieCard';
+import UserCard from '../components/UserCard';
 
 const FilmsPage = () => {
     const { username } = useParams();
     const [loading, setloading] = useState(true);
     const [movies, setmovies] = useState([]);
+    const [profilePic, setprofilePic] = useState(null);
 
     useEffect(() => {
         const fetchMovies = async () => {
             try {
                 const res = await axiosInstance.get(`/page/${username}/films`);
                 setmovies(res.data.watched || []);
+                setprofilePic(res.data.profilePic || "/avatar.png");
             } catch (error) {
                 console.error("Error fetching Watched Movies:", error.message);
             } finally {
@@ -34,7 +37,8 @@ const FilmsPage = () => {
 
     return (
         <div className="my-6 px-4 sm:px-8 lg:px-48">
-            <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Films</h2>
+            <UserCard username={username} profilePic={profilePic} />
+            <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">{username}'s Watched Films</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {movies.slice(0, 10).map((movie) => (
                     <div key={movie.movieId} className='relative'>

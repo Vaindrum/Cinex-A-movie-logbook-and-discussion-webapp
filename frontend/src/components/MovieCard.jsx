@@ -8,7 +8,7 @@ const MovieCard = ({ movie, className }) => {
     return (
         <div
             className={`cursor-pointer ${className}`}
-            onClick={() => navigate(`/film/${movie.title.toLowerCase().replace(/\s+/g, "-")}${movie.release_date ? "-" + movie.release_date.split("-")[0] : ""}`)}
+            onClick={() => navigate(`/film/${movie.title}${movie.release_date ? "-" + movie.release_date.split("-")[0] : ""}`)}
         >
             <img src={getMoviePoster(movie.poster_path)}
                 alt={movie.title}
