@@ -6,6 +6,7 @@ import { Heart, Star, PlayCircle, Film, Popcorn } from "lucide-react";
 import Loading from "../components/Loading";
 import ActionForm from "../components/ActionForm";
 import { useAuthStore } from "../store/useAuthStore";
+import MovieCard from "../components/MovieCard";
 
 const FilmPage = () => {
     const {authUser} = useAuthStore();
@@ -15,7 +16,6 @@ const FilmPage = () => {
     const [movie, setMovie] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setloading] = useState(true);
-    const [actions, setactions] = useState([]);
 
     useEffect(() => {
         const fetchMovie = async () => {
@@ -29,17 +29,7 @@ const FilmPage = () => {
                 setloading(false);
             }
         };
-        const fetchActionStatus = async () => {
-            try {
-                const res = await axiosInstance.get(`/actions/${username}/${movieName}`);
-                setactions(res.data);
-                console.log("actions",username,movieName,res.data);
-            } catch (error) {
-                console.error("Error fetching actions status:", error.message);
-            }
-        }
         fetchMovie();
-        fetchActionStatus();
     }, [movieName]);
 
     if(loading) return <Loading />;
@@ -72,7 +62,7 @@ const FilmPage = () => {
 
                 {/* Right Column - Rating Placeholder */}
                 <div className="w-1/5 bg-gray-800 p-4 rounded-lg text-center">
-                    <p className="text-gray-500"><ActionForm  actions={actions} /></p>
+                    <p className="text-gray-500"><ActionForm  movieId={movie.movieId} movieName={movieName} username={username} /></p>
                 </div>
                 <div className="text-center mt-4">
                     <p className="text-gray-500">Rating</p>
@@ -158,7 +148,22 @@ const FilmPage = () => {
             ))
                 )}
         </div>
-
+        <div className="my-6 px-4 sm:px-8 lg:px-48">
+    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Similar Movies</h2>
+    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+        {movie.similarMovies.results.slice(0, 10).map((m) => (
+          <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group"/>
+        ))}
+      </div>
+    </div>
+    <div className="my-6 px-4 sm:px-8 lg:px-48">
+    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Recommended Movies</h2>
+    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+        {movie.recommendedMovies.results.slice(0, 10).map((m) => (
+          <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group"/>
+        ))}
+      </div>
+    </div>
 
         </div >
         );

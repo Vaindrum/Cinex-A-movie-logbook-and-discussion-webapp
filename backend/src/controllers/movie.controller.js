@@ -63,6 +63,11 @@ export const getMovieDetails = async (movieName) => {
 
         const data = await fetchFromTMDB(`movie/${movieId}?append_to_response=credits,alternative_titles,release_dates,videos,watch/providers`);
 
+        const similarMovies = await fetchFromTMDB(`movie/${movieId}/similar`);
+        
+        const recommendedMovies = await fetchFromTMDB(`movie/${movieId}/recommendations`);
+
+
         // console.log(data);
 
         const existingMovie = await Movie.findOne({ movieId });
@@ -107,6 +112,8 @@ export const getMovieDetails = async (movieName) => {
                 : null,
             platforms: data["watch/providers"].results.IN || {},
             rating: data.vote_average.toFixed(1),
+            similarMovies,
+            recommendedMovies
         };
 
     } catch (error) {
@@ -136,64 +143,6 @@ export const getMovieCache = async (movieIds) => {
     }
 };
 
-
-
-
-
-export const getTrendingMovies = async (req, res) => {
-    try {
-        const { page = 1 } = req.query;
-        const data = await fetchFromTMDB("trending/movie/week", { page });
-        res.status(200).json(data);
-    } catch (error) {
-        console.error("Error in getTrendingMovies:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-}
-
-export const getPopularMovies = async (req, res) => {
-    try {
-        const { page = 1 } = req.query;
-        const data = await fetchFromTMDB("movie/popular", { page });
-        res.status(200).json(data);
-    } catch (error) {
-        console.error("Error in getPopularMovies:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-}
-
-export const getTopRatedMovies = async (req, res) => {
-    try {
-        const { page = 1 } = req.query;
-        const data = await fetchFromTMDB("movie/top_rated", { page });
-        res.status(200).json(data);
-    } catch (error) {
-        console.error("Error in getTopRatedMovies:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-}
-
-export const getNowPlayingMovies = async (req, res) => {
-    try {
-        const { page = 1 } = req.query;
-        const data = await fetchFromTMDB("movie/now_playing", { page });
-        res.status(200).json(data);
-    } catch (error) {
-        console.error("Error in getNowPlayingMovies:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-}
-
-export const getUpcomingMovies = async (req, res) => {
-    try {
-        const { page = 1 } = req.query;
-        const data = await fetchFromTMDB("movie/upcoming", { page });
-        res.status(200).json(data);
-    } catch (error) {
-        console.error("Error in getUpcomingMovies:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-}
 
 export const getMoviesByGenre = async (req, res) => {
     try {

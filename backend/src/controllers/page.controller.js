@@ -7,13 +7,24 @@ import Review from "../models/review.model.js";
 import Comment from "../models/comment.model.js";
 import Movie from "../models/movie.model.js";
 import { getMovieCache, getMovieDetails } from "./movie.controller.js";
+import { fetchFromTMDB } from "../lib/tmdb.js";
 
 // FILMS PAGE
 export const getWatched = async (req, res) => {
     try {
         const userId = req.userId;
         const profilePic = req.profilePic;
-        const watchedMovies = await Watched.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+        const totalMovies = await Watched.countDocuments({ userId });
+
+        const watchedMovies = await Watched.find({ userId }, { movieId: 1, _id: 0 })
+            .sort({ _id: -1 })
+            .skip(skip)
+            .limit(limit);
+
 
         const movieIds = watchedMovies.map(m => m.movieId);
 
@@ -60,11 +71,11 @@ export const getWatched = async (req, res) => {
                 release_date: cache.release_date,
                 rating: ratingMap.get(movieId) || null,
                 reviewId: reviewMap.get(movieId) || null,
-                liked: likedMovies.has(movieId)
+                liked: likedMovies.has(movieId),
             }
-        })
+        }).sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
 
-        res.status(200).json({profilePic, watched: watchedData });
+        res.status(200).json({ profilePic, totalMovies: totalMovies, watched: watchedData });
     } catch (error) {
         console.error("Error in getWatched", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -76,7 +87,16 @@ export const getLikes = async (req, res) => {
     try {
         const userId = req.userId;
         const profilePic = req.profilePic;
-        const likedMovies = await Likes.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+        const totalMovies = await Likes.countDocuments({ userId });
+
+        const likedMovies = await Likes.find({ userId }, { movieId: 1, _id: 0 })
+            .sort({ _id: -1 })
+            .skip(skip)
+            .limit(limit);;
 
         const movieIds = likedMovies.map(m => m.movieId);
 
@@ -124,9 +144,9 @@ export const getLikes = async (req, res) => {
                 reviewId: reviewMap.get(movieId) || null,
                 watched: watchedMovies.has(movieId)
             }
-        })
+        }).sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
 
-        res.status(200).json({profilePic, liked: likedData });
+        res.status(200).json({ profilePic, totalMovies: totalMovies, liked: likedData });
     } catch (error) {
         console.error("Error in getLikes", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -140,7 +160,15 @@ export const getWatchlist = async (req, res) => {
         const userId = req.userId;
         const profilePic = req.profilePic;
 
-        const watchlistMovies = await Watchlist.find({ userId }, { movieId: 1, _id: 0 }).sort({ _id: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+        const totalMovies = await Watchlist.countDocuments({ userId });
+
+        const watchlistMovies = await Watchlist.find({ userId }, { movieId: 1, createdAt: 1, _id: 0 })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);;
 
         const movieIds = watchlistMovies.map(m => m.movieId);
         const movieMap = await getMovieCache(movieIds);
@@ -156,7 +184,7 @@ export const getWatchlist = async (req, res) => {
             }
         })
 
-        res.status(200).json({profilePic, watchlist: watchlistData });
+        res.status(200).json({ profilePic,totalMovies: totalMovies, watchlist: watchlistData });
     } catch (error) {
         console.error("Error in getWatchlist:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -168,7 +196,16 @@ export const getLogs = async (req, res) => {
     try {
         const userId = req.userId;
         const profilePic = req.profilePic;
-        const logs = await Log.find({ userId }).sort({ _id: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+        const totalLogs = await Log.countDocuments({ userId });
+
+        const logs = await Log.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
 
         const logIds = logs.map(log => log._id);
         const movieIds = logs.map(log => log.movieId);
@@ -193,11 +230,8 @@ export const getLogs = async (req, res) => {
         // console.log("Reviews:", reviews);
 
         const ratingMap = new Map(ratings.map(r => [r.logId.toString(), r.rating]));
-
         const reviewMap = new Map(reviews.map(r => [r.logId.toString(), r._id]));
-
         const likedMovies = new Set(likes.map(like => like.movieId));
-
         const movieMap = await getMovieCache(movieIds);
 
         const logsData = logs.map(log => {
@@ -217,7 +251,7 @@ export const getLogs = async (req, res) => {
             }
         })
 
-        res.status(200).json({profilePic, logs: logsData });
+        res.status(200).json({ profilePic,totalLogs: totalLogs, logs: logsData });
     } catch (error) {
         console.error("Error in getLogs:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -230,7 +264,16 @@ export const getReviews = async (req, res) => {
     try {
         const userId = req.userId;
         const profilePic = req.profilePic;
-        const reviews = await Review.find({ userId }).sort({ _id: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+        const totalReviews = await Review.countDocuments({ userId });
+
+        const reviews = await Review.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);;
 
         const logIds = reviews.map(r => r.logId);
         const movieIds = reviews.map(r => r.movieId);
@@ -239,7 +282,7 @@ export const getReviews = async (req, res) => {
 
         const checkLogs = await Log.find({ _id: logIds });
         console.log("Existing Logs in DB:", checkLogs);
-        
+
         const [logs, ratings, likes, movieMap] = await Promise.all([
             Log.find({ _id: { $in: logIds } }, { _id: 1, watchedOn: 1, rewatch: 1 }),
             Rating.find({
@@ -280,7 +323,7 @@ export const getReviews = async (req, res) => {
             };
         });
 
-        res.status(200).json({profilePic, reviews: reviewsData });
+        res.status(200).json({ profilePic,totalReviews: totalReviews, reviews: reviewsData });
     } catch (error) {
         console.error("Error in getReviews:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -332,7 +375,7 @@ export const getReview = async (req, res) => {
         const log = review.logId ? await Log.findById(review.logId, { watchedOn: 1, rewatch: 1 }) : null;
 
         const rating = await Rating.findOne(
-            review.logId 
+            review.logId
                 ? { logId: review.logId }
                 : { logId: null, movieId: review.movieId },
             { rating: 1, _id: 0 }
@@ -408,6 +451,22 @@ export const getMoviePage = async (req, res) => {
 
     } catch (error) {
         console.error("Error in getMoviePage", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const getHomePage = async (req, res) => {
+    try {
+        const { page = 1 } = req.query;
+        const trendingMovies = await fetchFromTMDB("trending/movie/week", { page });
+        const popularMovies = await fetchFromTMDB("movie/popular", { page });
+        const topRatedMovies = await fetchFromTMDB("movie/top_rated", { page });
+        const upcomingMovies = await fetchFromTMDB("movie/upcoming", { page });
+        const nowPlayingMovies = await fetchFromTMDB("movie/now_playing", { page });
+
+        res.status(200).json({ trending: trendingMovies, popular: popularMovies, topRated: topRatedMovies, upcoming: upcomingMovies, nowPlaying: nowPlayingMovies });
+    } catch (error) {
+        console.error("Error in getHomePage", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }

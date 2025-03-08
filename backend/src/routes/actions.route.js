@@ -24,7 +24,7 @@ router.delete("/log/:movieId", protectRoute, validateMovie, deleteLog);
 router.post("/comment", protectRoute, addComment);
 router.delete("/comment", protectRoute, deleteComment);
 
-router.get("/:username/:movieName", verifyUser, getActions);
+router.get("/:username/:movieId", verifyUser, getActions);
 
 
 export default router;

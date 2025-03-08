@@ -23,7 +23,7 @@ import ReviewPage from './pages/ReviewPage';
 import LogoutPrompt from './components/LogoutPrompt';
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth} = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const [showSignUp, setshowSignUp] = useState(false);
   const [showLogin, setshowLogin] = useState(false);
   const [showLogout, setshowLogout] = useState(false);
@@ -33,37 +33,43 @@ const App = () => {
     checkAuth();
   }, []);
 
-  console.log({authUser});
+  console.log({ authUser });
 
-  if(isCheckingAuth && !authUser) return <Loading />;
-  
+  if (isCheckingAuth && !authUser) return <Loading />;
+
 
   return (
     <div>
-      <Toaster position="top-right" reverseOrder={false} />
-      <Navbar setshowSignUp={setshowSignUp} setshowLogin={setshowLogin} setshowLogout={setshowLogout}/>
+      <Navbar setshowSignUp={setshowSignUp} setshowLogin={setshowLogin} setshowLogout={setshowLogout} className="fixed top-0 left-0 w-full z-50 bg-black shadow-md" />
+      <div>
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          toastOptions={{
+            style: {
+              marginTop: "60px", // Adjust based on navbar height
+            },
+          }} />
 
-      <Routes>
-        <Route path='/' element={<HomePage/>} />
-        <Route path='/settings' element={authUser ? <SettingsPage/>: <Navigate to="/login" />} />
-        <Route path='/:username/profile' element={ <ProfilePage/>} />
-        <Route path='/film/:movieName' element={ <FilmPage/> } />
+        <Routes>
+          <Route path='/' element={<HomePage />} />
+          <Route path='/settings' element={authUser ? <SettingsPage /> : <Navigate to="/login" />} />
+          <Route path='/:username/profile' element={<ProfilePage />} />
+          <Route path='/film/:movieName' element={<FilmPage />} />
 
-        <Route path='/:username/films' element={<FilmsPage/>}/>
-        <Route path='/:username/likes' element={<LikesPage/>}/>
-        <Route path='/:username/watchlist' element={<WatchlistPage/>}/>
-        <Route path='/:username/reviews' element={<ReviewsPage/>}/>
-        <Route path='/:username/diary' element={<DiaryPage/>}/>
+          <Route path='/:username/films' element={<FilmsPage />} />
+          <Route path='/:username/likes' element={<LikesPage />} />
+          <Route path='/:username/watchlist' element={<WatchlistPage />} />
+          <Route path='/:username/reviews' element={<ReviewsPage />} />
+          <Route path='/:username/diary' element={<DiaryPage />} />
 
-        <Route path='/:username/review/:reviewId' element={<ReviewPage/>}/>
+          <Route path='/:username/review/:reviewId' element={<ReviewPage />} />
 
-
-      </Routes>
-
-      {showSignUp && <SignUpForm setshowSignUp={setshowSignUp} setshowLogin={setshowLogin} />}
-      {showLogin && <LoginForm setshowLogin={setshowLogin} setshowSignUp={setshowSignUp}/>}
-      {showLogout && <LogoutPrompt setshowLogout={setshowLogout}/>}
-
+        </Routes>
+        {showSignUp && <SignUpForm setshowSignUp={setshowSignUp} setshowLogin={setshowLogin} />}
+        {showLogin && <LoginForm setshowLogin={setshowLogin} setshowSignUp={setshowSignUp} />}
+        {showLogout && <LogoutPrompt setshowLogout={setshowLogout} />}
+      </div>
     </div>
   )
 }

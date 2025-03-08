@@ -14,13 +14,18 @@ const ReviewsPage = () => {
   const [reviews, setreviews] = useState([]);
   const navigate = useNavigate();
   const [profilePic, setprofilePic] = useState(null);
+  const [currentPage, setcurrentPage] = useState(1);
+  const [totalReviews, settotalReviews] = useState(0);
+  const limit = 10;
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const res = await axiosInstance.get(`/page/${username}/reviews`);
+        const res = await axiosInstance.get(`/page/${username}/reviews?page=${currentPage}`);
         setreviews(res.data.reviews ? res.data.reviews.sort((a, b) => new Date(b.watchedOn || b.createdAt) - new Date(a.watchedOn || a.createdAt)) : []);
         setprofilePic(res.data.profilePic || "/avatar.png");
+        settotalReviews(res.data.totalReviews);
+        console.log("Total Reviews:", totalReviews, "Current Page:", currentPage, "Limit:", limit);
         // console.log("Fetched Review:", res.data);
       } catch (error) {
         console.error("Error fetching Reviews:", error.message);
@@ -29,7 +34,7 @@ const ReviewsPage = () => {
       }
     };
     fetchReviews();
-  }, [username]);
+  }, [username,currentPage]);
 
 
 
@@ -60,6 +65,14 @@ const ReviewsPage = () => {
           </div>
         ))}
       </div>
+      <div className="flex justify-center mt-6 space-x-4 cursor-pointer">
+                {currentPage > 1 && (
+                    <button onClick={() => setcurrentPage(currentPage - 1)} className="px-4 py-2 bg-red-700 text-white rounded">Previous</button>
+                )}
+                {(currentPage * limit) < totalReviews && (
+                    <button onClick={() => setcurrentPage(currentPage + 1)} className="px-4 py-2 bg-red-700 text-white rounded">Next</button>
+                )}
+            </div>
     </div>
   );
 };

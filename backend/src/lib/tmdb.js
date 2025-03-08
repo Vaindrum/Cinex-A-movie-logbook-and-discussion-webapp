@@ -4,53 +4,57 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_BEARER_TOKEN = process.env.TMDB_BEARER_TOKEN;
 
-export const fetchFromTMDB = async (endpoint, queryParams = {}) => {
+export const fetchFromTMDB = async (endpoint, queryParams = {}, retries = 3, delay = 1000) => {
     const url = new URL(`${TMDB_BASE_URL}/${endpoint}`);
 
-    //some query requests still need api_key so this appends api_key at the end of query
-    if(!TMDB_BEARER_TOKEN){
+    if (!TMDB_BEARER_TOKEN) {
         queryParams.api_key = TMDB_API_KEY;
     }
-    
+
     Object.keys(queryParams).forEach((key) => url.searchParams.append(key, queryParams[key]));
 
-    try{
-        //Bearer tokens are more secure than api_key coz api_key can be exposed in inspect network or something idk
-        const options = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-                "Authorization": `Bearer ${TMDB_BEARER_TOKEN}`
+    const options = {
+        method: "GET",
+        headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${TMDB_BEARER_TOKEN}`
+        }
+    };
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+            console.log(`Fetching from TMDB (Attempt ${attempt + 1}):`, url.toString());
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("TMDB API Error:", data);
+                return null;
             }
-        };
 
-        console.log("Fetching from TMDB:", url.toString());
+            if (data.status_code === 34) {
+                return { status_code: 34 };
+            }
 
-        const response = await fetch(url,options);
-        const data = await response.json();
-
-        if(!response.ok){
-            console.error("TMDB API Error:", data);
-            return null;
+            return data;
+        } catch (error) {
+            console.error(`Error fetching from TMDB (Attempt ${attempt + 1}):`, error.message);
+            if (attempt < retries - 1) {
+                await new Promise((res) => setTimeout(res, delay * (attempt + 1))); // Exponential backoff
+            } else {
+                console.error("TMDB request failed after retries.");
+                return null;
+            }
         }
-
-        if(data.status_code === 34){
-            return { status_code: 34};
-        }
-
-        return data;
-        
-    } catch(error){
-        console.error("Error fetching from TMDB", error.message);
-        return null;
     }
-}
+};
 
 export const testTMDB = async () => {
     try{
-        const testResponse = await fetchFromTMDB("movie/popular");
+        const testResponse = await fetchFromTMDB("movie/550");
 
-        if(testResponse && testResponse.results){
+        if(testResponse){
             console.log("TMDB API Connected successfully");
         } else{
             console.log("TMDB API response format unexpected: ", testResponse);

@@ -76,11 +76,6 @@ export const toggleWatchlist = async (req, res) => {
 };
 
 export const addOrUpdateRating = async (req, res) => {
-    // if not attached to log, rating can be updated independently
-    // since we only need one rating for one log(whether it be null or valid log), its ok to combine add and update into one function
-
-    // but if attached to log, rating updated inside that log 
-    // multiple logs -> multiple corresponding ratings if given 
     try {
         const { movieId } = req;
         const { rating } = req.body;
@@ -350,13 +345,10 @@ export const deleteComment = async (req, res) => {
 export const getActions = async (req, res) => {
     try {
         const userId = req.userId;
-        const { movieName } = req.params;
-        const movieDetails = await getMovieDetails(movieName);
-        if (!movieDetails) return res.status(404).json({ message: "Movie Not Found" });
+        const { movieId } = req.params;
 
-        const movieId = movieDetails.movieId;
-
-        const [watched, liked, watchlisted, rating, review] = await Promise.all([
+        const [watched, log, liked, watchlisted, rating, review] = await Promise.all([
+            Watched.exists({userId, movieId}),
             Log.exists({ userId, movieId }),
             Likes.exists({ userId, movieId }),
             Watchlist.exists({ userId, movieId }),
@@ -369,7 +361,8 @@ export const getActions = async (req, res) => {
             liked: !!liked,
             watchlisted: !!watchlisted,
             rating: rating ? rating.rating : null,
-            reviewed: !!review
+            reviewed: !!review,
+            logged: !!log
         });
 
     } catch (error) {

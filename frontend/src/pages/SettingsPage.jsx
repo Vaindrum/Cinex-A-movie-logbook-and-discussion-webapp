@@ -119,7 +119,7 @@ const SettingsPage = () => {
             {/* Save Button */}
             <button
                 onClick={handleUpdateProfile}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold transition"
+                className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold transition"
                 disabled={isUpdatingProfile}
             >
                 {isUpdatingProfile ? "Updating..." : "Save Changes"}

@@ -1,6 +1,6 @@
 import express from "express";
 import { protectRoute } from "../middleware/auth.middleware.js";
-import {getLikes, getLog, getLogs, getMoviePage, getReview, getReviews, getWatched, getWatchlist} from "../controllers/page.controller.js";
+import {getLikes, getLog, getLogs, getMoviePage, getHomePage, getReview, getReviews, getWatched, getWatchlist} from "../controllers/page.controller.js";
 import { verifyUser } from "../middleware/user.middleware.js";
 
 const router = express.Router();
@@ -16,5 +16,6 @@ router.get("/:username/reviews", verifyUser, getReviews);
 router.get("/:username/review/:reviewId", verifyUser, getReview);
 router.get("/log", getLog);
 router.get("/details/:movieName", getMoviePage);
+router.get("/home", getHomePage);
 
 export default router;

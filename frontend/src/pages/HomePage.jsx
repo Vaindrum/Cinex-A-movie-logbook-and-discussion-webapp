@@ -3,55 +3,21 @@ import { axiosInstance } from "../lib/axios";
 import MovieCard from "../components/MovieCard";
 import Loading from "../components/Loading";
 
-// const MovieCard = ({ movie }) => {
-//   return (
-//     <div className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group">
-//       <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-//       alt={movie.title} 
-//       className="w-full h-full object-cover rounded-xl transition duration-300 group-hover:opacity-50" />
-//       <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-//         <h3 className="text-white text-sm sm:text-base md:text-lg font-bold text-center">{movie.title}</h3>
-//         <p className="text-gray-300 text-xs sm:text-sm">{movie.year}</p>
-//       </div>
-//     </div>
-//   );
-// };
-
-
-const MovieSection = ({ title, fetchUrl }) => {
-  const [movies, setMovies] = useState([]);
-  const [loading, setloading] = useState(true);
-
-  useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        const res = await axiosInstance.get(fetchUrl);
-        setMovies(res.data.results || []); // Store only results
-      } catch (error) {
-        console.error(`Error fetching ${title}:`, error);
-      } finally{
-        setloading(false);
-      }
-    };
-    fetchMovies();
-  }, [fetchUrl, title]);
-
-  if(loading) return <Loading />;
-
-    if(!movies) return(
-      <div className='flex items-center justify-center h-screen'>
-        <p>Movies Not Found</p>
+const MovieSection = ({ title, movies }) => {
+  if (!movies || movies.results.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <p>No movies found for {title}</p>
       </div>
-    )
-
-  // console.log(`${title} Movies:`, movies);
+    );
+  }
 
   return (
     <div className="my-6 px-4 sm:px-8 lg:px-48">
-    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">{title}</h2>
-    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-        {movies.slice(0, 10).map((movie) => (
-          <MovieCard key={movie.id} movie={movie} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group"/>
+      <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">{title}</h2>
+      <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+        {movies.results.slice(0, 10).map((movie) => (
+          <MovieCard key={movie.id} movie={movie} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
         ))}
       </div>
     </div>
@@ -59,13 +25,52 @@ const MovieSection = ({ title, fetchUrl }) => {
 };
 
 const HomePage = () => {
+  const [movies, setMovies] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const res = await axiosInstance.get("/page/home");
+        setMovies(res.data); 
+      } catch (error) {
+        setError("Failed to load movies. Please try again.");
+        console.error("Error fetching homepage movies:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMovies();
+  }, []);
+
+  if (loading) return <Loading />;
+
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-900 min-h-screen text-white flex items-center justify-center">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+console.log(movies);
+
+  if (!movies) {
+    return (
+      <div className="p-6 bg-gray-900 min-h-screen text-white flex items-center justify-center">
+        <p>Failed to load movies</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-gray-900 min-h-screen text-white">
-      <MovieSection title="Trending Movies" fetchUrl="/movies/trending" />
-      <MovieSection title="Popular Movies" fetchUrl="/movies/popular" />
-      <MovieSection title="Now Playing Movies" fetchUrl="/movies/now-playing" />
-      <MovieSection title="Upcoming Movies" fetchUrl="/movies/upcoming" />
-      <MovieSection title="Top-Rated Movies" fetchUrl="/movies/top-rated" />
+      <MovieSection title="Trending Movies" movies={movies.trending} />
+      <MovieSection title="Popular Movies" movies={movies.popular} />
+      <MovieSection title="Now Playing Movies" movies={movies.nowPlaying} />
+      <MovieSection title="Upcoming Movies" movies={movies.upcoming} />
+      <MovieSection title="Top-Rated Movies" movies={movies.topRated} />
     </div>
   );
 };
