@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { ClipboardX, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import SearchBar from './Searchbar';
+import SearchBar from './SearchBar';
 import toast from 'react-hot-toast';
 
 const Navbar = ({ setshowSignUp, setshowLogin, setshowLogout }) => {
