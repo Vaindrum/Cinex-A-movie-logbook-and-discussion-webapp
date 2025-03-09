@@ -14,36 +14,21 @@ dotenv.config();
 const app = express();
 
 const PORT = process.env.PORT;
-const allowedOrigins = [process.env.ORIGIN, "http://localhost:5173"];
 
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Apply CORS properly
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, origin);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+const corsOptions = {
+    origin: process.env.ORIGIN, // Allow only your frontend
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+    credentials: true, // Allow cookies if needed
+};
 
-// ✅ Fix: Ensure every response includes CORS headers
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  next();
-});
+app.use(cors(corsOptions));
 
-// ✅ Handle Preflight Requests (OPTIONS)
-app.options("*", cors());
+// If using custom headers, explicitly allow preflight requests
+app.options("*", cors(corsOptions));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
@@ -51,12 +36,13 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/actions", actionRoutes);
 app.use("/api/page", pageRoutes);
 
+
 app.all("*", (req, res) => {
-  res.status(404).json({ message: "Backend working" });
+    res.status(404).json({ message: "Route Not Found" });
 });
 
 app.listen(PORT, () => {
-  console.log("server is running on port PORT: " + PORT);
-  connectDB();
-  testTMDB();
-});
+    console.log("server is running on port PORT: " + PORT);
+    connectDB();
+    testTMDB();
+})
