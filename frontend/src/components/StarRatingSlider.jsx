@@ -27,7 +27,7 @@ const StarRatingSlider = ({ rating, setRating }) => {
       } else if (index + 0.5 <= activeRating) {
         return <StarHalf fill="#FFD700" color="#FFD700" size={32} />;
       } else {
-        return <Star color="#D3D3D3" size={32} />;
+        return <Star className='text-gray-500' size={32} />;
       }
     };
   

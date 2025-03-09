@@ -25,6 +25,7 @@ const FilmPage = () => {
                 const res = await axiosInstance.get(`/page/details/${movieName}`);
                 setMovie(res.data.movieDetails);
                 setReviews(res.data.reviewsData);
+                console.log(res.data.movieDetails);
             } catch (error) {
                 console.error("Error fetching movie:", error.message);
             } finally {
@@ -36,6 +37,7 @@ const FilmPage = () => {
 
     if (loading) return <Loading />;
 
+    console.log(movie);
     if (!movie) return (
         <div className='flex items-center justify-center h-screen'>
             <p>Movies Not Found</p>
@@ -48,34 +50,42 @@ const FilmPage = () => {
             <div className="absolute inset-0 -z-10 opacity-40" style={{ backgroundImage: `url(${getMoviePoster(movie.backdrop, "original")})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(10px)' }}></div>
 
             {/* Main Content */}
-            <div className="flex gap-12 relative">
+            <div className="flex flex-col md:flex-row gap-12 relative">
                 {/* Left Column - Poster */}
-                <div className="w-1/5">
-                    <img src={getMoviePoster(movie.poster, "w500")} alt={movie.title} className="w-full rounded-lg" />
+                <div className="md:w-1/5 w-full text-center">
+                    <img
+                        src={getMoviePoster(movie.poster, "w500")}
+                        alt={movie.title}
+                        className="w-[200px] h-[300px] md:w-full md:h-auto rounded-lg mx-auto"
+                    />
+                    <p className="text-gray-400 mt-2">Runtime: {movie.runtime} min</p>
                 </div>
 
                 {/* Center Column - Movie Info */}
                 <div className="flex-1 text-center">
-                    <h1 className="text-5xl font-bold">{movie.title} <span className="text-gray-400 text-2xl">({movie.year})</span></h1>
+                    <h1 className="text-4xl md:text-5xl font-bold">{movie.title} <span className="text-gray-400 text-2xl">({movie.year})</span></h1>
                     <p className="text-lg text-gray-400 mt-1">Directed by <span className="text-white">{movie.director}</span></p>
                     <p className="mt-4 text-gray-200 font-medium text-xl">{movie.tagline}</p>
                     <p className="mt-4 text-gray-400 text-lg">{movie.overview}</p>
                 </div>
-
-                {/* Right Column - Action Form */}
-                <div className="w-1/5 bg-gray-800 p-4 rounded-lg text-center">
-                    <p className="text-gray-500"><ActionForm movieId={movie.movieId} movieName={movieName} username={username} authUser={authUser} /></p>
-                </div>
-                <div className="text-center mt-4">
-                    <p className="text-gray-500">Rating</p>
-                    <div className="flex justify-center mt-2 text-yellow-500">
-                        <Popcorn />
+                {/* Right Column - Action Form (Moves Below on Mobile) */}
+                <div className=" text-center md:w-1/4 mt-8 md:mt-0 w-[300px] h-[300px] md:h-auto rounded-lg mx-auto mb-10">
+                    <div className="bg-gray-800 p-4 rounded-lg shadow-lg ">
+                        <p className="text-gray-300 text-center font-serif border-b border-gray-700 mb-5 pb-2">
+                            What do you think about this film?
+                        </p>
+                        <ActionForm movieId={movie.movieId} movieName={movieName} username={username} authUser={authUser} />
                     </div>
-                    <p className="text-xl font-bold text-center mt-2">{movie.rating}/10</p>
-                    <p className="text-gray-400 text-center mt-2">Runtime: {movie.runtime} min</p>
+                    <div className="text-center mt-4 gap-2">
+                        <div className="flex justify-center mt-2 text-yellow-500">
+                            <Popcorn />
+                        </div>
+                        <p className="text-xl font-bold text-center mt-2">{movie.rating}/10</p>
+                    </div>
                 </div>
-
             </div>
+
+
 
             {/* Mini Navbar */}
             <div className="mt-8 border-b border-gray-700 flex gap-6 text-gray-400 text-lg pb-2">
@@ -83,32 +93,87 @@ const FilmPage = () => {
                 <span className="cursor-pointer hover:text-white">Crew</span>
                 <span className="cursor-pointer hover:text-white">Details</span>
                 <span className="cursor-pointer hover:text-white">Genres</span>
-                <span className="cursor-pointer hover:text-white">Releases</span>
             </div>
 
             {/* Movie Details */}
             <div className="mt-6 flex gap-12">
                 {/* Left - Trailer & Platforms */}
                 <div className="w-1/5">
-                    {movie.trailer && <a href={movie.trailer} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-400 hover:underline"><PlayCircle /> Watch Trailer</a>}
-                    <p className="text-gray-400 mt-4">Available on:</p>
-                    <p className="text-white">{Object.keys(movie.platforms).join(", ") || "N/A"}</p>
+                    {movie.trailer && (
+                        <a
+                            href={movie.trailer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-blue-400 hover:underline"
+                        >
+                            <PlayCircle /> Watch Trailer
+                        </a>
+                    )}
+
+                    <div className="mt-4">
+                        {Object.entries(movie.platforms || {}).map(([type, providers]) => (
+                            Array.isArray(providers) && providers.length > 0 ? (
+                                <div key={type} className="mb-4">
+                                    <h3 className="text-lg font-bold capitalize">{type}</h3>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {providers.map((provider, index) => (
+                                            <span
+                                                key={index}
+                                                className="bg-gray-800 text-white px-3 py-1 rounded text-sm"
+                                            >
+                                                {provider.provider_name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : null
+                        ))}
+                    </div>
                 </div>
+
 
                 {/* Center - Details */}
                 <div className="flex-1 grid grid-cols-2 gap-4">
+                    {/* Cast */}
                     <div>
                         <h3 className="text-lg font-bold">Cast</h3>
-                        {movie.cast.map((actor, i) => (
-                            <div key={i} className="text-gray-400 hover:text-white">{actor}</div>
-                        ))}
+                        <div className="flex flex-wrap gap-2">
+                            {movie.cast.map((actor, i) => {
+                                const [name, character] = actor.split(" - ");
+                                return (
+                                    <div key={i} className="relative group">
+                                        <span className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-12 bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
+                                            {character}
+                                        </span>
+                                        <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded cursor-pointer group-hover:text-white">
+                                            {name}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
+
+                    {/* Crew */}
                     <div>
                         <h3 className="text-lg font-bold">Crew</h3>
-                        {movie.crew.slice(0, 5).map((member, i) => (
-                            <div key={i} className="text-gray-400 hover:text-white">{member}</div>
-                        ))}
+                        <div className="flex flex-wrap gap-2">
+                            {movie.crew.map((member, i) => {
+                                const [job, person] = member.split(" - ");
+                                return (
+                                    <div key={i} className="relative group">
+                                        <span className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-12 bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
+                                            {job}
+                                        </span>
+                                        <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded cursor-pointer group-hover:text-white">
+                                            {person}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
+
                     <div>
                         <h3 className="text-lg font-bold">Details</h3>
                         <p className="text-gray-400">Studio: {movie.details.studio.join(", ")}</p>
@@ -158,7 +223,7 @@ const FilmPage = () => {
             <div className="my-6 px-4 sm:px-8 lg:px-48">
                 <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Similar Movies</h2>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                    {movie.similarMovies.results.slice(0, 10).map((m) => (
+                    {movie.similarMovies.map((m) => (
                         <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
                     ))}
                 </div>
@@ -166,7 +231,7 @@ const FilmPage = () => {
             <div className="my-6 px-4 sm:px-8 lg:px-48">
                 <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Recommended Movies</h2>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                    {movie.recommendedMovies.results.slice(0, 10).map((m) => (
+                    {movie.recommendedMovies.map((m) => (
                         <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
                     ))}
                 </div>

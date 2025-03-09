@@ -61,11 +61,11 @@ export const getMovieDetails = async (movieName) => {
         const movieId = await searchMovieByName(movieName);
         if (!movieId) return null;
 
-        const data = await fetchFromTMDB(`movie/${movieId}?append_to_response=credits,alternative_titles,release_dates,videos,watch/providers`);
+        const data = await fetchFromTMDB(`movie/${movieId}?append_to_response=credits,videos,watch/providers`);
 
-        const similarMovies = await fetchFromTMDB(`movie/${movieId}/similar`);
+        const similarMovies = (await fetchFromTMDB(`movie/${movieId}/similar?page=1`)).results.slice(0,10);
         
-        const recommendedMovies = await fetchFromTMDB(`movie/${movieId}/recommendations`);
+        const recommendedMovies = (await fetchFromTMDB(`movie/${movieId}/recommendations?page=1`)).results.slice(0,10);
 
 
         // console.log(data);
@@ -94,19 +94,14 @@ export const getMovieDetails = async (movieName) => {
             director: data.credits.crew.find(person => person.job === "Director")?.name || "Unknown",
             tagline: data.tagline || "",
             overview: data.overview || "",
-            cast: data.credits.cast.map(actor => `${actor.name} - ${actor.character}`),
-            crew: data.credits.crew.map(person => `${person.job} - ${person.name}`),
+            cast: data.credits.cast.slice(0,50).map(actor => `${actor.name} - ${actor.character}`),
+            crew: data.credits.crew.slice(0,50).map(person => `${person.job} - ${person.name}`),
             details: {
                 studio: data.production_companies.map(company => company.name),
                 country: data.production_countries.map(country => country.name),
-                language: data.spoken_languages.map(lang => lang.english_name),
-                alternativeTitles: data.alternative_titles.titles.map(title => title.title),
+                language: data.spoken_languages.map(lang => lang.english_name)
             },
             genres: data.genres.map(genre => genre.name),
-            releases: data.release_dates.results.map(release => ({
-                country: release.iso_3166_1,
-                year: release.release_dates[0]?.release_date?.split("-")[0] || "Unknown"
-            })),
             trailer: data.videos.results.find(video => video.type === "Trailer" && video.site === "YouTube")?.key
                 ? `https://www.youtube.com/watch?v=${data.videos.results.find(video => video.type === "Trailer" && video.site === "YouTube").key}`
                 : null,

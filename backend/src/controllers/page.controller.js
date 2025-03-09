@@ -16,7 +16,7 @@ export const getWatched = async (req, res) => {
         const profilePic = req.profilePic;
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 40;
         const skip = (page - 1) * limit;
         const totalMovies = await Watched.countDocuments({ userId });
 
@@ -89,7 +89,7 @@ export const getLikes = async (req, res) => {
         const profilePic = req.profilePic;
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 40;
         const skip = (page - 1) * limit;
         const totalMovies = await Likes.countDocuments({ userId });
 
@@ -161,7 +161,7 @@ export const getWatchlist = async (req, res) => {
         const profilePic = req.profilePic;
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 40;
         const skip = (page - 1) * limit;
         const totalMovies = await Watchlist.countDocuments({ userId });
 
@@ -476,11 +476,11 @@ export const getMoviePage = async (req, res) => {
 export const getHomePage = async (req, res) => {
     try {
         const { page = 1 } = req.query;
-        const trendingMovies = await fetchFromTMDB("trending/movie/week", { page });
-        const popularMovies = await fetchFromTMDB("movie/popular", { page });
-        const topRatedMovies = await fetchFromTMDB("movie/top_rated", { page });
-        const upcomingMovies = await fetchFromTMDB("movie/upcoming", { page });
-        const nowPlayingMovies = await fetchFromTMDB("movie/now_playing", { page });
+        const trendingMovies = (await fetchFromTMDB("trending/movie/week", { page })).results.slice(0,10);
+        const popularMovies = (await fetchFromTMDB("movie/popular", { page })).results.slice(0,10);
+        const topRatedMovies = (await fetchFromTMDB("movie/top_rated", { page })).results.slice(0,10);
+        const upcomingMovies = (await fetchFromTMDB("movie/upcoming", { page })).results.slice(0,10);
+        const nowPlayingMovies = (await fetchFromTMDB("movie/now_playing", { page })).results.slice(0,10);
 
         res.status(200).json({ trending: trendingMovies, popular: popularMovies, topRated: topRatedMovies, upcoming: upcomingMovies, nowPlaying: nowPlayingMovies });
     } catch (error) {

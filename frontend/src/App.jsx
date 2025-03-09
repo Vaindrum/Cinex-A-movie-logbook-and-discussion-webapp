@@ -53,7 +53,7 @@ const App = () => {
 
         <Routes>
           <Route path='/' element={<HomePage />} />
-          <Route path='/settings' element={authUser ? <SettingsPage /> : <Navigate to="/login" />} />
+          <Route path='/:username/settings' element={<SettingsPage />} />
           <Route path='/:username/profile' element={<ProfilePage />} />
           <Route path='/film/:movieName' element={<FilmPage />} />
 
