@@ -7,7 +7,7 @@ import { Eye, EyeOff, X } from "lucide-react";
 
 const SignUpForm = ({ setshowSignUp, setshowLogin }) => {
   const [showPassword, setshowPassword] = useState(false);
-  const [formData, setformData] = useState({ username: "", email: "", password: "" });
+  const [formData, setformData] = useState({ username: "", email: "", password: "", profiePic: "/avatar.png" });
 
   const { signup, isSigningUp } = useAuthStore();
 
@@ -49,7 +49,7 @@ const SignUpForm = ({ setshowSignUp, setshowLogin }) => {
 
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center" onClick={() => setshowSignUp(false)}>
+    <div className="fixed z-50 top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center" onClick={() => setshowSignUp(false)}>
       <div className="bg-gray-800 text-white p-6 rounded-2xl shadow-lg w-96 relative font-inter" onClick={(e) => e.stopPropagation()}>
         {/* Close Button (X) */}
         <button className="absolute top-2 right-2 text-gray-300 hover:text-white cursor-pointer" onClick={() => setshowSignUp(false)}>

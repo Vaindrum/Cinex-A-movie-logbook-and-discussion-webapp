@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { axiosInstance } from "../lib/axios";
 import { getMoviePoster } from "../lib/poster";
 import { Heart, Star, PlayCircle, Film, Popcorn } from "lucide-react";
@@ -9,13 +9,15 @@ import { useAuthStore } from "../store/useAuthStore";
 import MovieCard from "../components/MovieCard";
 
 const FilmPage = () => {
-    const {authUser} = useAuthStore();
+    const { authUser } = useAuthStore();
     const username = authUser ? authUser.username : null;
     const { movieName } = useParams();
     // console.log(movieName);
     const [movie, setMovie] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setloading] = useState(true);
+    const [showSpoiler, setshowSpoiler] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMovie = async () => {
@@ -25,19 +27,19 @@ const FilmPage = () => {
                 setReviews(res.data.reviewsData);
             } catch (error) {
                 console.error("Error fetching movie:", error.message);
-            } finally{
+            } finally {
                 setloading(false);
             }
         };
         fetchMovie();
     }, [movieName]);
 
-    if(loading) return <Loading />;
+    if (loading) return <Loading />;
 
-    if(!movie) return(
-      <div className='flex items-center justify-center h-screen'>
-        <p>Movies Not Found</p>
-      </div>
+    if (!movie) return (
+        <div className='flex items-center justify-center h-screen'>
+            <p>Movies Not Found</p>
+        </div>
     )
 
     return (
@@ -60,9 +62,9 @@ const FilmPage = () => {
                     <p className="mt-4 text-gray-400 text-lg">{movie.overview}</p>
                 </div>
 
-                {/* Right Column - Rating Placeholder */}
+                {/* Right Column - Action Form */}
                 <div className="w-1/5 bg-gray-800 p-4 rounded-lg text-center">
-                    <p className="text-gray-500"><ActionForm  movieId={movie.movieId} movieName={movieName} username={username} /></p>
+                    <p className="text-gray-500"><ActionForm movieId={movie.movieId} movieName={movieName} username={username} authUser={authUser} /></p>
                 </div>
                 <div className="text-center mt-4">
                     <p className="text-gray-500">Rating</p>
@@ -130,43 +132,48 @@ const FilmPage = () => {
                 ) : (
                     reviews.map((review) => (
                         <div key={review.reviewId} className="border-b border-gray-700 py-4">
-                            <div className="flex items-center gap-2">
+                            <div onClick={() => navigate(`/${review.username}/review/${review.reviewId}`)} className="flex items-center gap-2 cursor-pointer">
 
                                 Review by <p className="inline font-semibold">{review.username}</p>
-                                {review.rating !== null && (
-                                    <p className="text-green-500 fill-green-500  flex items-center">{[...Array(review.rating)].map((_, i) => (
-                                        <Star key={i} fill="currentColor" className="w-4 h-4" />
-                                    ))}
+                                {Number.isInteger(review.rating) && review.rating > 0 && (
+                                    <p className="text-green-500 fill-green-500 flex items-center">
+                                        {[...Array(review.rating)].map((_, i) => (
+                                            <Star key={i} fill="currentColor" className="w-4 h-4" />
+                                        ))}
                                     </p>
                                 )}
+
                                 {review.liked && <p className="text-orange-400 "><Heart fill="currentColor" className="w-4 h-4" /></p>}
                             </div>
-                            <p className={`text - gray - 300 ${review.spoiler ? "bg-red-700 text-white p-2 rounded" : ""}`}>
-                            {review.spoiler ? "⚠ Spoiler Hidden" : review.review}
-                        </p>
+                            <p
+                                className={`text-gray-300 ${review.spoiler && !showSpoiler ? "bg-red-700 text-white p-2 rounded cursor-pointer" : ""}`}
+                                onClick={() => setshowSpoiler(true)}
+                            >
+                                {review.spoiler && !showSpoiler ? "⚠ Spoiler Hidden (Click to Reveal)" : review.review}
+                            </p>
                         </div>
-            ))
+                    ))
                 )}
-        </div>
-        <div className="my-6 px-4 sm:px-8 lg:px-48">
-    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Similar Movies</h2>
-    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-        {movie.similarMovies.results.slice(0, 10).map((m) => (
-          <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group"/>
-        ))}
-      </div>
-    </div>
-    <div className="my-6 px-4 sm:px-8 lg:px-48">
-    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Recommended Movies</h2>
-    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-        {movie.recommendedMovies.results.slice(0, 10).map((m) => (
-          <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group"/>
-        ))}
-      </div>
-    </div>
+            </div>
+            <div className="my-6 px-4 sm:px-8 lg:px-48">
+                <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Similar Movies</h2>
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                    {movie.similarMovies.results.slice(0, 10).map((m) => (
+                        <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
+                    ))}
+                </div>
+            </div>
+            <div className="my-6 px-4 sm:px-8 lg:px-48">
+                <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Recommended Movies</h2>
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                    {movie.recommendedMovies.results.slice(0, 10).map((m) => (
+                        <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
+                    ))}
+                </div>
+            </div>
 
         </div >
-        );
+    );
 };
 
 export default FilmPage;

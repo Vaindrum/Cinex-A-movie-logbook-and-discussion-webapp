@@ -7,7 +7,7 @@ const UserCard = ({ username, profilePic }) => {
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 transition mb-4" >
       <img 
-        src={profilePic || "/default-avatar.png"} 
+        src={profilePic || "/avatar.png"} 
         alt="Profile" 
         className="w-10 h-10 rounded-full object-cover cursor-pointer"
         onClick={() => navigate(`/${username}/profile`)}

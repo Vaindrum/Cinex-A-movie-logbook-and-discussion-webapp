@@ -24,7 +24,7 @@ const Navbar = ({ setshowSignUp, setshowLogin, setshowLogout }) => {
               if (authUser) {
                 navigate(`/${authUser.username}/${item}`);
               } else {
-                toast(`Login to view your ${item}`);
+                toast.error(`Login to view your ${item}`);
                 setshowLogin(true);
               }
             }}            

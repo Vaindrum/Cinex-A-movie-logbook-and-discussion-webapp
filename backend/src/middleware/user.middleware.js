@@ -9,6 +9,7 @@ export const verifyUser = async (req,res, next) => {
 
         req.userId = user._id;
         req.profilePic = user.profilePic;
+        req.username = username;
         next();
     } catch (error) {
         console.error("Error in verifyUser middleware:", error.message);

@@ -79,22 +79,14 @@ export const addOrUpdateRating = async (req, res) => {
     try {
         const { movieId } = req;
         const { rating } = req.body;
-        const { logId } = req.body;
         const userId = req.user.id;
 
         if (typeof rating !== "number" || isNaN(rating) || rating < 0.5 || rating > 5 || rating % 0.5 !== 0) {
             return res.status(400).json({ message: "Invalid rating" });
         }
 
-        if (logId) {
-            const logExists = await Log.exists({ _id: logId, userId, movieId });
-            if (!logExists) {
-                return res.status(400).json({ message: "Invalid log ID" });
-            }
-        }
-
         const newrating = await Rating.findOneAndUpdate(
-            { userId, movieId, logId: logId || null },
+            { userId, movieId, logId: null },
             { rating },
             { upsert: true, new: true }
         );
@@ -111,21 +103,9 @@ export const addOrUpdateRating = async (req, res) => {
 };
 
 export const deleteRating = async (req, res) => {
-    // rating deletion if independent -> delete independent rating (with logid: null)
-    // rating deletion if in a log -> delete rating of that log (user wants to delete rating in that log)
     try {
         const { movieId } = req;
-        const { logId } = req.body;
         const userId = req.user.id;
-
-        if (logId) {
-            const existingLogRating = await Rating.findOne({ userId, movieId, logId });
-            if (!existingLogRating) {
-                return res.status(400).json({ message: "No rating with that log to remove" });
-            }
-            await Rating.deleteOne({ userId, movieId, logId });
-            return res.status(200).json({ message: "Rating deleted for log" });
-        }
 
         const existingIndependentRating = await Rating.findOne({ userId, movieId, logId: null });
         if (!existingIndependentRating) {
@@ -144,29 +124,44 @@ export const deleteRating = async (req, res) => {
 export const addReview = async (req, res) => {
     try {
         const { movieId } = req;
-        const { logId, review, spoiler } = req.body;
+        const { review, spoiler, rating, liked } = req.body;
         const userId = req.user.id;
+        console.log(movieId, review, spoiler, rating, liked);
 
-
-
-        if (typeof review !== "string") {
-            return res.status(400).json({ message: "Invalid review" });
+        if (typeof review !== "string" || review.trim().length === 0) {
+            return res.status(400).json({ message: "Review cannot be empty" });
         }
 
-        if (logId) {
-            const logExists = await Log.exists({ _id: logId, userId, movieId });
-            if (!logExists) {
-                return res.status(400).json({ message: "Invalid log ID" });
-            }
+        const createdReview = await Review.create({ userId, movieId, review, spoiler });
 
-            const reviewExists = await Review.exists({ logId });
-            if (reviewExists) {
-                return res.status(400).json({ message: "A review already exists for that log ID" });
+        let newrating = null;
+        if (rating !== undefined && rating !== null) {
+            if (typeof rating !== "number" || isNaN(rating) || rating < 0.5 || rating > 5 || rating % 0.5 !== 0) {
+                return res.status(400).json({ message: "Invalid rating" });
+            }
+            newrating = await Rating.findOneAndUpdate(
+                { userId, movieId, logId: null },
+                { rating },
+                { upsert: true, new: true }
+            );
+            await Watched.findOneAndUpdate({ userId, movieId }, {}, { upsert: true });
+        }
+
+        let likeStatus = null;
+        if (liked !== undefined) {
+            const existingLike = await Likes.findOne({ userId, movieId });
+
+            if (liked && !existingLike) {
+                await Likes.create({ userId, movieId });
+                likeStatus = true;
+            } else if (!liked && existingLike) {
+                await Likes.deleteOne({ _id: existingLike._id });
+                likeStatus = false;
             }
         }
 
-        const createdReview = await Review.create({ userId, movieId, review, spoiler, logId: logId || null });
-        res.status(201).json({ message: "Review added", review: createdReview });
+        await Watchlist.deleteOne({ userId, movieId });
+        res.status(201).json({ message: "Review added", review: createdReview, rating: newrating, like: likeStatus });
 
     } catch (error) {
         console.error("Error in addReview:", error.message);
@@ -177,8 +172,10 @@ export const addReview = async (req, res) => {
 export const updateReview = async (req, res) => {
     try {
         const { movieId } = req;
-        const { review, spoiler, reviewId } = req.body;
+        const { review, spoiler, reviewId, rating, liked } = req.body;
         const userId = req.user.id;
+        console.log(movieId, review, spoiler, rating, liked);
+
 
         if (typeof review !== "string") {
             return res.status(400).json({ message: "Invalid review" });
@@ -186,7 +183,7 @@ export const updateReview = async (req, res) => {
 
         if (review.trim() === "") {
             await Review.deleteOne({ _id: reviewId, userId, movieId });
-            return res.status(200).json({ message: "Review deleted" });
+            // return res.status(200).json({ message: "Review deleted" });
         }
 
         const updatedReview = await Review.findOneAndUpdate(
@@ -196,7 +193,37 @@ export const updateReview = async (req, res) => {
         );
         if (!updatedReview) return res.status(404).json({ message: "Review not found" });
 
-        res.status(200).json({ message: "Review Updated", review: updatedReview });
+        let newrating = null;
+        if (rating !== undefined) {
+            if (rating === null) {
+                await Rating.deleteOne({ userId, movieId, logId: null });
+            } else {
+                if (typeof rating !== "number" || isNaN(rating) || rating < 0.5 || rating > 5 || rating % 0.5 !== 0) {
+                    return res.status(400).json({ message: "Invalid rating" });
+                }
+                newrating = await Rating.findOneAndUpdate(
+                    { userId, movieId, logId: null },
+                    { rating },
+                    { upsert: true, new: true }
+                );
+                await Watched.findOneAndUpdate({ userId, movieId }, {}, { upsert: true });
+            }
+        }
+
+        let likeStatus = null;
+        if (liked !== undefined) {
+            const existingLike = await Likes.findOne({ userId, movieId });
+
+            if (liked && !existingLike) {
+                await Likes.create({ userId, movieId });
+                likeStatus = true;
+            } else if (!liked && existingLike) {
+                await Likes.deleteOne({ _id: existingLike._id });
+                likeStatus = false;
+            }
+        }
+
+        res.status(201).json({ message: "Review updated", review: updatedReview, rating: newrating, like: likeStatus });
 
     } catch (error) {
         console.error("Error in updateReview:", error.message);
@@ -228,17 +255,44 @@ export const addLog = async (req, res) => {
     try {
         const { movieId } = req;
         const userId = req.user.id;
-        const { watchedOn, rewatch } = req.body;
+        const { rating, liked, review, watchedOn, rewatch, spoiler } = req.body;
+        console.log(movieId, review, spoiler, rating, liked, watchedOn, rewatch);
 
         if (watchedOn && isNaN(Date.parse(watchedOn))) {
             return res.status(400).json({ message: "Invalid date format for watchedOn" });
         }
 
         const createdLog = await Log.create({ userId, movieId, rewatch, watchedOn: watchedOn || Date.now() });
+
+        let createdReview = null;
+        if (review && typeof review === "string" && review.trim().length > 0) {
+            createdReview = await Review.create({ userId, movieId, review, spoiler, logId: createdLog._id });
+        }
+
+        let newrating = null;
+        if (rating !== undefined && rating !== null) {
+            if (typeof rating !== "number" || isNaN(rating) || rating < 0.5 || rating > 5 || rating % 0.5 !== 0) {
+                return res.status(400).json({ message: "Invalid rating" });
+            }
+            newrating = await Rating.create({ userId, movieId, logId: createdLog._id, rating });
+        }
+
+        let likeStatus = null;
+        if (liked !== undefined) {
+            const existingLike = await Likes.findOne({ userId, movieId });
+
+            if (liked && !existingLike) {
+                await Likes.create({ userId, movieId });
+                likeStatus = true;
+            } else if (!liked && existingLike) {
+                await Likes.deleteOne({ _id: existingLike._id });
+                likeStatus = false;
+            }
+        }
+
         await Watched.findOneAndUpdate({ userId, movieId }, {}, { upsert: true });
         await Watchlist.deleteOne({ userId, movieId });
-
-        res.status(201).json({ message: "Log added", log: createdLog });
+        res.status(201).json({ message: "Log added", log: createdLog, review: createdReview, rating: newrating, like: likeStatus });
 
     } catch (error) {
         console.error("Error in addLog:", error.message);
@@ -250,7 +304,8 @@ export const updateLog = async (req, res) => {
     try {
         const { movieId } = req;
         const userId = req.user.id;
-        const { logId, watchedOn, rewatch } = req.body;
+        const { logId, spoiler, watchedOn, rewatch, review, rating, liked } = req.body;
+        console.log(movieId, review, spoiler, rating, liked, watchedOn, rewatch, logId);
 
         if (watchedOn && isNaN(Date.parse(watchedOn))) {
             return res.status(400).json({ message: "Invalid date format for watchedOn" });
@@ -263,7 +318,53 @@ export const updateLog = async (req, res) => {
         );
         if (!log) return res.status(404).json({ message: "Log not found" });
 
-        res.status(200).json({ message: "Log updated", log: log });
+        let updatedReview = null;
+        if (typeof review === "string") {
+            if (review.trim() === "") {
+                await Review.deleteOne({ logId, userId, movieId });
+            } else {
+                updatedReview = await Review.findOneAndUpdate(
+                    { logId, userId, movieId },
+                    { review, spoiler },
+                    { new: true, upsert: true }
+                );
+            }
+        }
+        // if (!updatedReview) return res.status(404).json({ message: "Review not found" });
+
+
+        let newrating = null;
+        if (rating !== undefined) {
+            if (rating === null) {
+                await Rating.deleteOne({ userId, movieId, logId });
+            } else {
+                if (typeof rating !== "number" || isNaN(rating) || rating < 0.5 || rating > 5 || rating % 0.5 !== 0) {
+                    return res.status(400).json({ message: "Invalid rating" });
+                }
+                newrating = await Rating.findOneAndUpdate(
+                    { userId, movieId, logId },
+                    { rating },
+                    { upsert: true, new: true }
+                );
+            }
+        }
+
+        let likeStatus = null;
+        if (liked !== undefined) {
+            const existingLike = await Likes.findOne({ userId, movieId });
+
+            if (liked && !existingLike) {
+                await Likes.create({ userId, movieId });
+                likeStatus = true;
+            } else if (!liked && existingLike) {
+                await Likes.deleteOne({ _id: existingLike._id });
+                likeStatus = false;
+            }
+        }
+
+        await Watched.findOneAndUpdate({ userId, movieId }, {}, { upsert: true });
+        await Watchlist.deleteOne({ userId, movieId });
+        res.status(200).json({ message: "Log updated", log: log, review: updatedReview, rating: newrating, like: likeStatus });
 
     } catch (error) {
         console.error("Error in updateLog:", error.message);
@@ -289,8 +390,8 @@ export const deleteLog = async (req, res) => {
             return res.status(404).json({ message: "Log not found" });
         }
 
-        await Rating.deleteOne({ userId, movieId, logId: log._id });
-        await Review.deleteOne({ userId, movieId, logId: log._id });
+        await Rating.deleteOne({ userId, movieId, logId });
+        await Review.deleteOne({ userId, movieId, logId });
 
         res.status(200).json({ message: "Log deleted" });
 
@@ -304,12 +405,13 @@ export const addComment = async (req, res) => {
     try {
         const { reviewId, comment } = req.body;
         const userId = req.user.id;
+        console.log(userId);
 
         if (typeof comment !== "string" || comment.trim() === "") {
             return res.status(400).json({ message: "Invalid Comment" });
         }
 
-        const reviewExists = await Review.exists({ _id: reviewId, userId });
+        const reviewExists = await Review.exists({ _id: reviewId });
         if (!reviewExists) {
             return res.status(400).json({ message: "Invalid review id" });
         }
@@ -348,11 +450,11 @@ export const getActions = async (req, res) => {
         const { movieId } = req.params;
 
         const [watched, log, liked, watchlisted, rating, review] = await Promise.all([
-            Watched.exists({userId, movieId}),
+            Watched.exists({ userId, movieId }),
             Log.exists({ userId, movieId }),
             Likes.exists({ userId, movieId }),
             Watchlist.exists({ userId, movieId }),
-            Rating.findOne({ userId, movieId }, { rating: 1, _id: 0 }),
+            Rating.findOne({ userId, movieId }, { rating: 1, _id: 0 }).sort({ updatedAt: -1 }), ,
             Review.exists({ userId, movieId })
         ]);
 

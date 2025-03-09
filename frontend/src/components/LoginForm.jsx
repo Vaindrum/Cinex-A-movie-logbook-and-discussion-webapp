@@ -36,7 +36,7 @@ const LoginForm = ({ setshowLogin, setshowSignUp }) => {
     }
 
     return (
-        <div className='fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center' onClick={() => setshowLogin(false)}>
+        <div className='fixed top-0 z-50 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center' onClick={() => setshowLogin(false)}>
             <div className='bg-gray-800 text-white p-6 rounded-2xl shadow-lg w-96 relative font-inter' onClick={(e) => e.stopPropagation()}>
                 <button className='absolute top-2 right-2 text-gray-300 hover:text-white cursor-pointer' onClick={() => setshowLogin(false)}>
                     <X size={20} />

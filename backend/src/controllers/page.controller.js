@@ -32,7 +32,7 @@ export const getWatched = async (req, res) => {
         const ratings = await Rating.find(
             { userId, movieId: { $in: movieIds } },
             { movieId: 1, rating: 1, _id: 1 }
-        ).sort({ _id: -1 });
+        ).sort({ updatedAt: -1 });
 
         const reviews = await Review.find(
             { userId, movieId: { $in: movieIds } },
@@ -104,7 +104,7 @@ export const getLikes = async (req, res) => {
         const ratings = await Rating.find(
             { userId, movieId: { $in: movieIds } },
             { movieId: 1, rating: 1, _id: 1 }
-        ).sort({ _id: -1 });
+        ).sort({ updatedAt: -1 });
 
         const reviews = await Review.find(
             { userId, movieId: { $in: movieIds } },
@@ -217,7 +217,7 @@ export const getLogs = async (req, res) => {
 
         const reviews = await Review.find(
             { userId, logId: { $in: logIds } },
-            { logId: 1, _id: 1 }
+            { logId: 1, _id: 1, review:1 }
         );
 
         const likes = await Likes.find(
@@ -230,7 +230,7 @@ export const getLogs = async (req, res) => {
         // console.log("Reviews:", reviews);
 
         const ratingMap = new Map(ratings.map(r => [r.logId.toString(), r.rating]));
-        const reviewMap = new Map(reviews.map(r => [r.logId.toString(), r._id]));
+        const reviewMap = new Map(reviews.map(r => [r.logId.toString(), { reviewId: r._id, review: r.review }]));
         const likedMovies = new Set(likes.map(like => like.movieId));
         const movieMap = await getMovieCache(movieIds);
 
@@ -246,7 +246,8 @@ export const getLogs = async (req, res) => {
                 watchedOn: log.watchedOn,
                 rewatch: log.rewatch,
                 rating: ratingMap.get(log._id.toString()) || null,
-                reviewId: reviewMap.get(log._id.toString()) || null,
+                reviewId: reviewMap.get(log._id.toString())?.reviewId || null,
+                review: reviewMap.get(log._id.toString())?.review || null,
                 liked: likedMovies.has(log.movieId)
             }
         })
@@ -367,9 +368,10 @@ export const getReview = async (req, res) => {
     try {
         const userId = req.userId;
         const profilePic = req.profilePic;
+        const username = req.username;
         const { reviewId } = req.params;
 
-        const review = await Review.findById(reviewId);
+        const review = await Review.findOne({_id: reviewId, userId});
         if (!review) return res.status(404).json({ message: "Review Not Found" });
 
         const log = review.logId ? await Log.findById(review.logId, { watchedOn: 1, rewatch: 1 }) : null;
@@ -387,10 +389,24 @@ export const getReview = async (req, res) => {
         );
 
         const liked = await Likes.exists({ userId: review.userId, movieId: review.movieId });
-        const comments = await Comment.find({ reviewId });
+
+        const comments = await Comment.find({ reviewId })
+            .populate("userId", "username profilePic")
+            .lean();
+
+        // Format comments to include username and profilePic
+        const formattedComments = comments.map(comment => ({
+            commentId: comment._id,
+            username: comment.userId?.username || "Unknown",
+            profilePic: comment.userId?.profilePic || "/avatar.png",
+            comment: comment.comment,
+            createdAt: comment.createdAt
+        }));
+
 
         res.json({
             userId,
+            username,
             profilePic,
             reviewId: review._id,
             movieId: review.movieId,
@@ -405,7 +421,7 @@ export const getReview = async (req, res) => {
             rewatch: log?.rewatch || false,
             rating: rating?.rating || null,
             liked: !!liked,
-            comments
+            comments: formattedComments
         });
 
     } catch (error) {
@@ -424,6 +440,8 @@ export const getMoviePage = async (req, res) => {
         if (!movieDetails) return res.status(404).json({ message: "Movie Not Found" });
 
         const movieId = movieDetails.movieId;
+
+        // Reviews for that movie and details related to THAT REVIEW
         const reviews = await Review.find({ movieId })
             .populate("userId", "username")
             .sort({ _id: -1 });

@@ -34,7 +34,7 @@ const SearchBar = () => {
     };
 
     return (
-        <div className="relative w-72 z-50">
+        <div className="relative w-72 z-20">
             <input
                 type="text"
                 value={query}
