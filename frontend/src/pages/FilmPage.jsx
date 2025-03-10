@@ -19,7 +19,10 @@ const FilmPage = () => {
     const [showSpoiler, setshowSpoiler] = useState(false);
     const navigate = useNavigate();
 
+    // console.log(loading);
+
     useEffect(() => {
+        setloading(true);
         const fetchMovie = async () => {
             try {
                 const res = await axiosInstance.get(`/page/details/${movieName}`);
@@ -32,7 +35,13 @@ const FilmPage = () => {
                 setloading(false);
             }
         };
-        fetchMovie();
+        const scroll = async () => {
+            var a = await fetchMovie();
+            window.scrollTo(0, 0);
+        }
+        scroll();
+    // scrollIntoView({ behavior: "smooth" });
+
     }, [movieName]);
 
     if (loading) return <Loading />;
