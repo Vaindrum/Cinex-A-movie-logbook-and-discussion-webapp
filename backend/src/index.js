@@ -35,7 +35,7 @@ app.use(session({
     secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: {secure: false}
+    cookie: { secure: process.env.NODE_ENV === "production" },
 }))
 
 const corsOptions = {

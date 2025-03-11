@@ -36,8 +36,9 @@ const LoginForm = ({ setshowLogin, setshowSignUp }) => {
     }
 
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:5001/api/auth/google";
-    }
+        window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    };
+    
 
     return (
         <div className='fixed top-0 z-50 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center' onClick={() => setshowLogin(false)}>
