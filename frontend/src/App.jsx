@@ -21,6 +21,7 @@ import DiaryPage from './pages/DiaryPage';
 import Loading from './components/Loading';
 import ReviewPage from './pages/ReviewPage';
 import LogoutPrompt from './components/LogoutPrompt';
+import AuthSuccess from './components/AuthSuccess';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -32,7 +33,8 @@ const App = () => {
   useEffect(() => {
     checkAuth();
   }, []);
-
+  
+  console.log(showLogin, showSignUp, showLogout);
   console.log({ authUser });
 
   if (isCheckingAuth && !authUser) return <Loading />;
@@ -53,6 +55,7 @@ const App = () => {
 
         <Routes>
           <Route path='/' element={<HomePage />} />
+          <Route path="/auth-success" element={<AuthSuccess />} />
           <Route path='/:username/settings' element={<SettingsPage />} />
           <Route path='/:username/profile' element={<ProfilePage />} />
           <Route path='/film/:movieName' element={<FilmPage />} />

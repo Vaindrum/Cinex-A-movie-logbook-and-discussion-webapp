@@ -10,6 +10,10 @@ import cookieParser from "cookie-parser";
 import { testTMDB } from "./lib/tmdb.js";
 import cors from "cors";
 
+import passport from "passport";
+import session from "express-session";
+import "./lib/passport.js"; 
+
 dotenv.config();
 const app = express();
 
@@ -23,6 +27,16 @@ app.use(cors({
     credentials: true
   }));
 
+app.use(session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {secure: false}
+}))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/movies", movieRoutes);
@@ -31,11 +45,11 @@ app.use("/api/page", pageRoutes);
 
 
 app.all("*",(req,res) => {
-    res.status(404).json({message: "Route Not Found"});
+    res.status(404).json({message: "Backend working"});
 });
 
 app.listen(PORT, ()=>{
-    console.log("server is running on port PORT: "+PORT);
+    console.log("server is running on port PORT: " + PORT);
     connectDB();
     testTMDB();
 })

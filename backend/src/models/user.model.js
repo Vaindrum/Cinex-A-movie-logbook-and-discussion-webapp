@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema(
             required: true,
             unique: true,
         },
+        googleId:{
+            type: String,
+            unique: true
+        },
         username: {
             type: String,
             required: true,
@@ -14,7 +18,6 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: true,
             minlength: 8,
         },
         bio:{
