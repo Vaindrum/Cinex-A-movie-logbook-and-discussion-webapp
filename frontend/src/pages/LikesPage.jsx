@@ -35,7 +35,7 @@ const LikesPage = () => {
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
         const hasHalfStar = rating % 1 !== 0;
-    
+
         return (
             <div className="flex items-center gap-0.5 text-yellow-500">
                 {[...Array(fullStars)].map((_, i) => <Star key={i} size={16} fill="currentColor" stroke="none" />)}
@@ -47,8 +47,11 @@ const LikesPage = () => {
     if (loading) return <Loading />;
 
     if (movies.length === 0) return (
-        <div className='flex items-center justify-center h-screen'>
-            <p className="text-gray-400 text-lg">Liked Movies Not Found</p>
+        <div className="max-w-4xl mx-auto p-4">
+            <UserCard username={username} profilePic={profilePic} />
+            <div className='flex items-center justify-center h-screen'>
+                <p className="text-gray-400 text-lg">No Liked Movies Yet</p>
+            </div>
         </div>
     );
 
@@ -60,31 +63,64 @@ const LikesPage = () => {
             <div className=" grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 sm:gap-10">
                 {movies.map((movie) => (
                     <div key={movie.movieId} className="relative">
-                        <MovieCard 
-                            movie={movie} 
-                            className="relative w-24 h-36 sm:w-28 sm:h-40 md:w-32 md:h-48 lg:w-36 lg:h-52 flex-shrink-0 overflow-hidden group" 
+                        <MovieCard
+                            movie={movie}
+                            className="relative w-24 h-36 sm:w-28 sm:h-40 md:w-32 md:h-48 lg:w-36 lg:h-52 flex-shrink-0 overflow-hidden group"
                         />
-                        <div className="flex items-center justify-center mt-2 text-gray-300 text-xs sm:text-sm gap-2">
-                            {movie.rating !== null && renderStars(movie.rating)}
-                            {/* {movie.watched && <Eye size={16} className="text-green-400" />} */}
-                            {movie.reviewId && <MessageSquareText size={16} className="text-blue-400 cursor-pointer" onClick={() => navigate(`/${username}/review/${movie.reviewId}`)} />}
+                         {/* Rating, Like, Review Section */}
+                         <div className="flex items-center mt-2 text-gray-300 text-xs sm:text-sm md:text-base gap-2 sm:gap-3">
+                            {/* Stars Container (Fixed space for 5 stars, but responsive) */}
+                            <div className="flex w-[50px] sm:w-[60px] md:w-[70px] justify-between">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <Star
+                                        key={i}
+                                        className="text-yellow-400 fill-yellow-400"
+                                        style={{
+                                            visibility: i <= movie.rating ? "visible" : "hidden",
+                                            width: "0.6rem", // Adjust size dynamically
+                                            height: "0.6rem",
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            {/* Like Icon (Only show if liked) */}
+                            {movie.watched && (
+                                <Eye
+                                    className="text-green-500 fill-green-900"
+                                    style={{
+                                        width: "0.85rem", // Shrinks proportionally
+                                        height: "0.85rem",
+                                    }}
+                                />
+                            )}
+                            {/* Review Icon (Only show if there's a review) */}
+                            {movie.reviewId && (
+                                <MessageSquareText
+                                    className="text-blue-400 cursor-pointer"
+                                    style={{
+                                        width: "0.85rem",
+                                        height: "0.85rem",
+                                    }}
+                                    onClick={() => navigate(`/${username}/review/${movie.reviewId}`)}
+                                />
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
 
             <div className="flex justify-center mt-6 space-x-4">
-                   {currentPage > 1 && (
-                     <button onClick={() => setcurrentPage(currentPage - 1)} className="px-4 py-2 flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-lg transition duration-300 cursor-pointer">
-                       <ArrowLeft size={16} /> Previous
-                     </button>
-                   )}
-                   {(currentPage * limit) < totalMovies && (
-                     <button onClick={() => setcurrentPage(currentPage + 1)} className="px-4 py-2 flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-lg transition duration-300 cursor-pointer">
-                       Next <ArrowRight size={16} />
-                     </button>
-                   )}
-                 </div>
+                {currentPage > 1 && (
+                    <button onClick={() => setcurrentPage(currentPage - 1)} className="px-4 py-2 flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-lg transition duration-300 cursor-pointer">
+                        <ArrowLeft size={16} /> Previous
+                    </button>
+                )}
+                {(currentPage * limit) < totalMovies && (
+                    <button onClick={() => setcurrentPage(currentPage + 1)} className="px-4 py-2 flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-lg transition duration-300 cursor-pointer">
+                        Next <ArrowRight size={16} />
+                    </button>
+                )}
+            </div>
         </div>
     );
 };

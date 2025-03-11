@@ -18,8 +18,8 @@ const Navbar = ({ setshowSignUp, setshowLogin, setshowLogout }) => {
       </button>
 
  {/* Left: SearchBar (only on mobile) */}
- <div className="flex items-center ml-4 gap-2 w-full lg:hidden">
-    <SearchBar className="w-full" />
+ <div className="flex items-center ml-4 gap-2 w-3/5 lg:hidden">
+    <SearchBar className="w-7/8" />
   </div>
 
 

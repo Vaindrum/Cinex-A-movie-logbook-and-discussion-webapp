@@ -43,12 +43,14 @@ const DiaryPage = () => {
 
   if (loading) return <Loading />;
 
-  if (logs.length === 0)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Logs Not Found</p>
-      </div>
-    );
+  if (logs.length === 0) return (
+    <div className="max-w-4xl mx-auto p-4">
+        <UserCard username={username} profilePic={profilePic} />
+        <div className='flex items-center justify-center h-screen'>
+            <p className="text-gray-400 text-lg">No Logs Yet</p>
+        </div>
+    </div>
+);
 
   // Group logs by month and year based on watchedOn date
   const groupedLogs = logs.reduce((acc, log) => {

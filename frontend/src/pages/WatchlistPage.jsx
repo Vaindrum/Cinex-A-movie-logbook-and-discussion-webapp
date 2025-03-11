@@ -35,8 +35,11 @@ const WatchlistPage = () => {
     if (loading) return <Loading />;
 
     if (movies.length === 0) return (
-        <div className='flex items-center justify-center h-screen'>
-            <p className="text-gray-400 text-lg">No Movies in Watchlist</p>
+        <div className="max-w-4xl mx-auto p-4">
+            <UserCard username={username} profilePic={profilePic} />
+            <div className='flex items-center justify-center h-screen'>
+                <p className="text-gray-400 text-lg">No Movies in Watchlist</p>
+            </div>
         </div>
     );
 
