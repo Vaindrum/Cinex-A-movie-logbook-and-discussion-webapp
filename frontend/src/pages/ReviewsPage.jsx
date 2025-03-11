@@ -47,8 +47,11 @@ const ReviewsPage = () => {
   if (loading) return <Loading />;
 
   if (reviews.length === 0) return (
+    <div className="max-w-4xl mx-auto p-4">
+    <UserCard username={username} profilePic={profilePic} />
     <div className='flex items-center justify-center h-screen'>
-      <p className="text-gray-400 text-lg">Reviews Not Found</p>
+      <p className="text-gray-400 text-lg">No Reviews Yet</p>
+    </div>
     </div>
   );
 

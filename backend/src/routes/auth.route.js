@@ -12,7 +12,8 @@ router.post("/logout", logout);
 
 router.get("/google", passport.authenticate("google", {scope: ["profile","email"]}));
 
-router.get("/google/callback", passport.authenticate("google", {failureRedirect: "http://localhost:5173/auth-failed"} ),
+router.get("/google/callback", passport.authenticate("google", {failureRedirect: `${process.env.ORIGIN}`
+} ),
 (req,res) => {
     if(!req.user){
         return res.status(401).json({message: "Google authentication failed"});
@@ -25,7 +26,7 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
         secure: true,
         sameSite: "None",
     });
-    return res.redirect(`http://localhost:5173/auth-success?token=${token}`);
+    return res.redirect(`${process.env.ORIGIN}/auth-success?token=${token}`);
 })
 
 
