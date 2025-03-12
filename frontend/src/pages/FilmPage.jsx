@@ -1,8 +1,11 @@
+import React from 'react';
+
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { axiosInstance } from "../lib/axios";
 import { getMoviePoster } from "../lib/poster";
-import { Heart, Star, PlayCircle, Film, Popcorn } from "lucide-react";
+import { Heart, Star, PlayCircle, Film, Popcorn, ChevronLeft, ChevronRight } from "lucide-react";
 import Loading from "../components/Loading";
 import ActionForm from "../components/ActionForm";
 import { useAuthStore } from "../store/useAuthStore";
@@ -22,8 +25,21 @@ const FilmPage = () => {
     const [showFullCrew, setShowFullCrew] = useState(false);
     const [showAllReviews, setShowAllReviews] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
+    const similarRef = React.useRef(null);
+    const recommendedRef = React.useRef(null);
 
     const navigate = useNavigate();
+
+    const scroll = (direction, section) => {
+        const container = section === "similar" ? similarRef.current : recommendedRef.current;
+        if (container) {
+            const cardWidth = container.firstChild.offsetWidth + 16; // Get card width + gap
+            container.scrollBy({ 
+                left: direction === "left" ? -cardWidth * 4 : cardWidth * 4, 
+                behavior: "smooth" 
+            });
+        }
+    };
 
     // console.log(loading);
 
@@ -60,7 +76,7 @@ const FilmPage = () => {
     )
 
     return (
-        <div className="text-white min-h-dvh px-20 py-10 relative">
+        <div className="text-white min-h-dvh px-10 lg:px-20 py-10 relative">
             {/* Backdrop Image */}
             <div className="absolute inset-0 -z-10 opacity-40" style={{ backgroundImage: `url(${getMoviePoster(movie.backdrop, "original")})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(10px)' }}></div>
 
@@ -71,7 +87,7 @@ const FilmPage = () => {
                     <img
                         src={getMoviePoster(movie.poster, "w500")}
                         alt={movie.title}
-                        className="w-[200px] h-[300px] md:w-full md:h-auto rounded-lg mx-auto"
+                        className="cursor-pointer w-[200px] h-[300px] md:w-full md:h-auto rounded-lg mx-auto"
                         onClick={() => setModalOpen(true)}
                     />
                 </div>
@@ -130,7 +146,7 @@ const FilmPage = () => {
                         href={movie.trailer}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex mt-3 items-center gap-2 text-blue-400 hover:underline"
+                        className="flex mt-3 items-center gap-2 text-blue-400 "
                     >
                         <PlayCircle /> Watch Trailer
                     </a>
@@ -141,10 +157,10 @@ const FilmPage = () => {
 
             {/* Mini Navbar */}
             <div className="mt-8 border-b border-gray-700 flex gap-6 text-gray-400 text-lg pb-2">
-                <a href="#cast" className=" cursor-pointer hover:underline">Cast</a>
-                <a href="#crew" className="cursor-pointer hover:underline">Crew</a>
-                <a href="#details" className="cursor-pointer hover:underline">Details</a>
-                <a href="#genres" className="cursor-pointer hover:underline">Genres</a>
+                <a href="#cast" className=" cursor-pointer">Cast</a>
+                <a href="#crew" className="cursor-pointer ">Crew</a>
+                <a href="#details" className="cursor-pointer">Details</a>
+                <a href="#genres" className="cursor-pointer">Genres</a>
             </div>
 
             {/* Movie Details */}
@@ -197,8 +213,8 @@ const FilmPage = () => {
                             })}
                         </div>
                         {movie.cast.length > 10 && (
-                            <button onClick={() => setShowFullCast(!showFullCast)} className="text-blue-500 mt-2">
-                                {showFullCast ? "Show Less" : "Show More"}
+                            <button onClick={() => setShowFullCast(!showFullCast)} className="cursor-pointer text-blue-500 mt-2">
+                                {showFullCast ? "Show Less..." : "Show More..."}
                             </button>
                         )}
                     </div>
@@ -222,8 +238,8 @@ const FilmPage = () => {
                             })}
                         </div>
                         {movie.crew.length > 10 && (
-                            <button onClick={() => setShowFullCrew(!showFullCrew)} className="text-blue-500 mt-2">
-                                {showFullCrew ? "Show Less" : "Show More"}
+                            <button onClick={() => setShowFullCrew(!showFullCrew)} className="cursor-pointer text-blue-500 mt-2">
+                                {showFullCrew ? "Show Less..." : "Show More..."}
                             </button>
                         )}
                     </div>
@@ -278,28 +294,44 @@ const FilmPage = () => {
                         ))}
 
                         {reviews.length > 4 && (
-                            <button onClick={() => setShowAllReviews(!showAllReviews)} className="text-blue-500 mt-2">
-                                {showAllReviews ? "Show Less" : "Show More"}
+                            <button onClick={() => setShowAllReviews(!showAllReviews)} className="cursor-pointer text-blue-500 mt-2">
+                                {showAllReviews ? "Show Less..." : "Show More..."}
                             </button>
                         )}
                     </>
                 )}
             </div>
 
-            <div className="my-6 px-4 sm:px-8 lg:px-48">
+            <div className="my-6 lg:px-21">
                 <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Similar Movies</h2>
-                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                    {movie.similarMovies.map((m) => (
-                        <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
-                    ))}
+                <div className="relative flex items-center">
+                    <button onClick={() => scroll("left", "similar")} className="hidden lg:block absolute -left-10 cursor-pointer z-10 bg-gray-800 p-2 rounded-full">
+                        <ChevronLeft />
+                    </button>
+                    <div ref={similarRef} className="flex gap-2 lg:gap-4 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory w-full transition-transform duration-500 ease-in-out">
+                        {movie.similarMovies.map((m) => (
+                            <MovieCard key={m.id} movie={m} className="relative w-[32%] sm:w-[25%] md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group snap-start" />
+                        ))}
+                    </div>
+                    <button onClick={() => scroll("right", "similar")} className="hidden lg:block absolute -right-8 cursor-pointer z-10 bg-gray-800 p-2 rounded-full">
+                        <ChevronRight />
+                    </button>
                 </div>
             </div>
-            <div className="my-6 px-4 sm:px-8 lg:px-48">
+            <div className="my-6 lg:px-21">
                 <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Recommended Movies</h2>
-                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                    {movie.recommendedMovies.map((m) => (
-                        <MovieCard key={m.id} movie={m} className="relative w-40 h-60 sm:w-40 sm:h-60 md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group" />
-                    ))}
+                <div className="relative flex items-center">
+                    <button onClick={() => scroll("left", "recommended")} className="hidden lg:block absolute -left-10 cursor-pointer z-10 bg-gray-800 p-2 rounded-full">
+                        <ChevronLeft />
+                    </button>
+                    <div ref={recommendedRef} className="flex gap-2 lg:gap-4 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory w-full transition-transform duration-500 ease-in-out">
+                        {movie.recommendedMovies.map((m) => (
+                            <MovieCard key={m.id} movie={m} className="relative w-[32%] sm:w-[25%] md:w-48 md:h-72 lg:w-56 lg:h-80 flex-shrink-0 overflow-hidden group snap-start" />
+                        ))}
+                    </div>
+                    <button onClick={() => scroll("right", "recommended")} className="hidden lg:block absolute -right-8 cursor-pointer z-10 bg-gray-800 p-2 rounded-full">
+                        <ChevronRight />
+                    </button>
                 </div>
             </div>
 

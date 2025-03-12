@@ -15,7 +15,19 @@ const FilmsPage = () => {
     const [profilePic, setprofilePic] = useState(null);
     const [currentPage, setcurrentPage] = useState(1);
     const [totalMovies, settotalMovies] = useState(0);
+    const [iconSize, setIconSize] = useState(8);
     const limit = 40;
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIconSize(window.innerWidth >= 768 ? 16 : 8);
+        };
+
+        handleResize(); // Set initial size
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         setloading(true);
@@ -72,39 +84,37 @@ const FilmsPage = () => {
                             className="relative w-24 h-36 sm:w-28 sm:h-40 md:w-32 md:h-48 lg:w-36 lg:h-52 flex-shrink-0 overflow-hidden group"
                         />
                         {/* Rating, Like, Review Section */}
-                        <div className="flex items-center mt-2 text-gray-300 text-xs sm:text-sm md:text-base gap-2 sm:gap-3">
-                            {/* Stars Container (Fixed space for 5 stars, but responsive) */}
-                            <div className="flex w-[50px] sm:w-[60px] md:w-[70px] justify-between">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <Star
-                                        key={i}
-                                        className="text-yellow-400 fill-yellow-400"
-                                        style={{
-                                            visibility: i <= movie.rating ? "visible" : "hidden",
-                                            width: "0.55rem", // Adjust size dynamically
-                                            height: "0.55rem",
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                            {/* Like Icon (Only show if liked) */}
+                        <div className="flex items-center gap-1 mt-1 text-gray-300">
+                            {/* Rating Stars - Only show filled stars */}
+                            {movie.rating > 0 && (
+                                <div className="flex items-center gap-0.5">
+                                    {[...Array(Math.floor(movie.rating))].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className="text-yellow-400 fill-yellow-400"
+                                            size={iconSize}
+                                        />
+                                    ))}
+                                    {movie.rating % 1 !== 0 && (
+                                        <StarHalf
+                                            className="text-yellow-400 fill-yellow-400"
+                                            size={iconSize}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                            {/* Like Icon */}
                             {movie.liked && (
                                 <Heart
                                     className="text-red-500 fill-red-500"
-                                    style={{
-                                        width: "0.85rem", // Shrinks proportionally
-                                        height: "0.85rem",
-                                    }}
+                                    size={iconSize}
                                 />
                             )}
-                            {/* Review Icon (Only show if there's a review) */}
+                            {/* Review Icon */}
                             {movie.reviewId && (
                                 <MessageSquareText
-                                    className="text-blue-400 cursor-pointer"
-                                    style={{
-                                        width: "0.85rem",
-                                        height: "0.85rem",
-                                    }}
+                                    className="text-blue-400 cursor-pointer hover:text-blue-300"
+                                    size={iconSize}
                                     onClick={() => navigate(`/${username}/review/${movie.reviewId}`)}
                                 />
                             )}

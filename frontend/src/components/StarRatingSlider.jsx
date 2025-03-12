@@ -23,9 +23,9 @@ const StarRatingSlider = ({ rating, setRating }) => {
     const renderStar = (index) => {
       const activeRating = hoverRating || rating;
       if (index + 1 <= Math.floor(activeRating)) {
-        return <Star fill="#FFD700" color="#FFD700" size={32} />;
+        return <Star className='text-green-500 fill-green-500' size={32} />;
       } else if (index + 0.5 <= activeRating) {
-        return <StarHalf fill="#FFD700" color="#FFD700" size={32} />;
+        return <StarHalf  className='text-green-500 fill-green-500' size={32} />;
       } else {
         return <Star className='text-gray-500' size={32} />;
       }

@@ -38,12 +38,12 @@ const ProfilePage = () => {
   return (
     <div className="max-w-3xl min-h-dvh mx-auto p-6">
       {/* Desktop Layout */}
-      <div className="hidden sm:flex items-center justify-between">
+      <div className="hidden  sm:flex items-center justify-between">
         <div className="flex items-center gap-6">
           <img
             src={profile.profilePic || "/avatar.png"}
             alt="Profile"
-            className="w-24 h-24 rounded-full object-cover"
+            className="cursor-pointer w-24 h-24 rounded-full object-cover"
             onClick={() => setModalOpen(true)}
           />
           <div>
@@ -57,7 +57,7 @@ const ProfilePage = () => {
         {authUser?.username === profile.username && (
           <button
             onClick={() => navigate(`/${authUser.username}/settings`)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
+            className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
           >
             Edit Profile
           </button>
@@ -74,7 +74,7 @@ const ProfilePage = () => {
         <img
           src={profile.profilePic || "/avatar.png"}
           alt="Profile"
-          className="w-24 h-24 rounded-full object-cover border"
+          className="cursor-pointer w-24 h-24 rounded-full object-cover border"
           onClick={() => setModalOpen(true)}
         />
         <h1 className="mt-3 text-xl font-bold">{profile.username}</h1>
@@ -85,7 +85,7 @@ const ProfilePage = () => {
         {authUser?.username === profile.username && (
           <button
             onClick={() => navigate(`/${authUser.username}/settings`)}
-            className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 cursor-pointer"
+            className="cursor-pointer mt-3 px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
           >
             Edit Profile
           </button>

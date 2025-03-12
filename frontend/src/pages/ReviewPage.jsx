@@ -94,17 +94,19 @@ const ReviewPage = () => {
                                     {renderStars(review.rating)}
                                 </>
                             )} {review.liked && <Heart size={16} className="text-red-500 fill-red-500" />}
-                            </p>
-                            <p className="text-xs text-gray-400">
+                        </p>
+                        <p className="text-xs text-gray-400">
                             {review.rewatch ? "Rewatched" : "Watched"} on {new Date(review.watchedOn || review.createdAt).toDateString()}
                         </p>
+                        {review.review && <p className="mt-2 text-sm text-gray-300">{review.review}</p>}
                     </div>
                 </div>
-                {authUser?.userId === review.userId && (
-                <button onClick={() => setShowLogForm(true)} className="mt-2 flex items-center cursor-pointer text-blue-400 hover:text-blue-300"><Edit size={16} className="mr-1" />
-                Edit
-                </button>)}
-                {review.review && <p className="mt-2 text-sm text-gray-300">{review.review}</p>}
+                {authUser && authUser.username === username && (
+                    <button onClick={() => setShowLogForm(true)} className="mt-2 flex items-center cursor-pointer text-blue-400 hover:text-blue-300">
+                        <Edit size={16} className="mr-1" />
+                        Edit
+                    </button>
+                )}
             </div>
 
             <div className="border border-gray-700 bg-gray-900 rounded-lg p-4">
@@ -122,7 +124,7 @@ const ReviewPage = () => {
                                     onClick={() => navigate(`/${comment.username}/profile`)}
                                 />
                                 <div className="flex-1">
-                                    <p className="text-sm font-semibold">{comment.username}</p>
+                                    <p className="text-sm font-semibold cursor-pointer" onClick={() => navigate(`/${comment.username}/profile`)}>{comment.username}</p>
                                     <p className="text-sm text-gray-300">{comment.comment}</p>
                                     <p className="text-xs text-gray-500">{new Date(comment.createdAt).toDateString()}</p>
                                 </div>

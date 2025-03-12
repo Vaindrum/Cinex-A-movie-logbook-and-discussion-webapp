@@ -9,7 +9,7 @@ const ActionForm = ({ movieId, username, authUser }) => {
   console.log(movieId, username);
   const [actions, setActions] = useState({ watched: false, liked: false, watchlisted: false });
   const [rating, setRating] = useState(null);
-  const [showLogForm, setShowLogForm] = useState(false);
+  const [showLogForm, setshowLogForm] = useState(false);
   const [loading, setLoading] = useState({ watched: false, liked: false, watchlisted: false, rating: false });
 
   const fetchActionStatus = async () => {
@@ -100,7 +100,7 @@ const ActionForm = ({ movieId, username, authUser }) => {
             else toast.error(`Login to Like`);
           }}
         >
-          {actions.liked ? <Heart fill="currentColor" className="text-red-500" /> : <Heart className="text-gray-500" />}
+          {actions.liked ? <Heart fill="currentColor" className="text-orange-500" /> : <Heart className="text-gray-500" />}
         </button>
 
         <button
@@ -138,16 +138,16 @@ const ActionForm = ({ movieId, username, authUser }) => {
       <button className="bg-gray-800 text-white px-4 py-2 rounded">Activity</button>
 
       <button
-        className="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded"
+        className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded"
         onClick={() => {
-          if (authUser) setShowLogForm(true);
+          if (authUser) setshowLogForm(true);
           else toast.error(`Login to Create Logs / Write Reviews`);
         }}
       >
         Review / Log
       </button>
 
-      {showLogForm && <LogForm setShowLogForm={setShowLogForm} movieId={movieId} username={username} />}
+      {showLogForm && <LogForm setshowLogForm={setshowLogForm} movieId={movieId} username={username} />}
     </div>
   );
 };

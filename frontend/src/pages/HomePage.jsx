@@ -24,7 +24,7 @@ const MovieSection = ({ title, movies }) => {
   };
 
   return (
-    <div className="my-6 px-4 sm:px-8 lg:px-35 relative">
+    <div className="my-6 sm:px-8 lg:px-35 relative">
       <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">{title}</h2>
       <div className="relative flex items-center">
         <button onClick={() => scroll("left")} className="hidden lg:block absolute -left-10 cursor-pointer z-10 bg-gray-800 p-2 rounded-full">
@@ -35,7 +35,7 @@ const MovieSection = ({ title, movies }) => {
             <MovieCard
               key={movie.id}
               movie={movie}
-              className="relative w-[25%] px-1 sm:w-[25%] md:w-[20%] lg:w-[19%] flex-shrink-0 overflow-hidden group snap-start"
+              className="relative w-[25%] px-0.5 sm:w-[25%] md:w-[20%] lg:w-[19%] flex-shrink-0 overflow-hidden group snap-start"
             />
           ))}
         </div>
@@ -79,7 +79,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-900 min-h-screen text-white">
+    <div className="p-4 bg-gray-900 min-h-screen text-white">
       <MovieSection title="Trending Movies" movies={movies.trending} />
       <MovieSection title="Popular Movies" movies={movies.popular} />
       <MovieSection title="Now Playing Movies" movies={movies.nowPlaying} />
