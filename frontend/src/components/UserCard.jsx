@@ -13,11 +13,12 @@ const UserCard = ({ username, profilePic }) => {
         onClick={() => navigate(`/${username}/profile`)}
       />
       <span
-        className="text-white text-lg font-medium cursor-pointer whitespace-nowrap"
+        className="text-white text-lg font-medium cursor-pointer whitespace-nowrap truncate max-w-[120px] sm:max-w-none"
         onClick={() => navigate(`/${username}/profile`)}
       >
-        {username}
+        {username.includes(" ") ? username.split(" ")[0] : username}
       </span>
+
       <nav className="flex items-center gap-4 sm:gap-6 text-sm sm:text-base font-light ml-auto mr-2">
         {["films", "diary", "reviews", "watchlist", "likes"].map((item) => (
           <p

@@ -22,6 +22,7 @@ import Loading from './components/Loading';
 import ReviewPage from './pages/ReviewPage';
 import LogoutPrompt from './components/LogoutPrompt';
 import AuthSuccess from './components/AuthSuccess';
+import Footer from './components/Footer';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -51,7 +52,23 @@ const App = () => {
             style: {
               marginTop: "60px", // Adjust based on navbar height
             },
-          }} />
+            success: {
+              style: {
+                marginBottom: "-60px", // Reduce gap between toasts
+              },
+            },
+            error: {
+              style: {
+                marginBottom: "-2px",
+              },
+            },
+            blank: {
+              style: {
+                marginBottom: "-2px",
+              },
+            },
+          }}
+        />
 
         <Routes>
           <Route path='/' element={<HomePage />} />
@@ -73,6 +90,7 @@ const App = () => {
         {showLogin && <LoginForm setshowLogin={setshowLogin} setshowSignUp={setshowSignUp} />}
         {showLogout && <LogoutPrompt setshowLogout={setshowLogout} />}
       </div>
+      <Footer />
     </div>
   )
 }

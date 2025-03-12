@@ -3,12 +3,14 @@ import { axiosInstance } from "../lib/axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import Loading from "../components/Loading";
+import ImageModal from "../components/ImageModal";
 
 const ProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const { authUser } = useAuthStore();
 
   useEffect(() => {
@@ -34,14 +36,15 @@ const ProfilePage = () => {
     );
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl min-h-dvh mx-auto p-6">
       {/* Desktop Layout */}
       <div className="hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-6">
           <img
             src={profile.profilePic || "/avatar.png"}
             alt="Profile"
-            className="w-24 h-24 rounded-full object-cover border"
+            className="w-24 h-24 rounded-full object-cover"
+            onClick={() => setModalOpen(true)}
           />
           <div>
             <h1 className="text-2xl font-bold">{profile.username}</h1>
@@ -59,6 +62,11 @@ const ProfilePage = () => {
             Edit Profile
           </button>
         )}
+         <ImageModal 
+                isOpen={modalOpen} 
+                imageUrl={profile.profilePic} 
+                onClose={() => setModalOpen(false)}
+            />
       </div>
 
       {/* Mobile Layout */}
@@ -67,6 +75,7 @@ const ProfilePage = () => {
           src={profile.profilePic || "/avatar.png"}
           alt="Profile"
           className="w-24 h-24 rounded-full object-cover border"
+          onClick={() => setModalOpen(true)}
         />
         <h1 className="mt-3 text-xl font-bold">{profile.username}</h1>
         <p className="text-gray-500 text-sm">
@@ -81,6 +90,11 @@ const ProfilePage = () => {
             Edit Profile
           </button>
         )}
+         <ImageModal 
+                isOpen={modalOpen} 
+                imageUrl={profile.profilePic} 
+                onClose={() => setModalOpen(false)}
+            />
       </div>
 
       {/* Followers / Following */}

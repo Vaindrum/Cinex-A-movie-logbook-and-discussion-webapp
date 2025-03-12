@@ -7,6 +7,7 @@ import Loading from "../components/Loading";
 import ActionForm from "../components/ActionForm";
 import { useAuthStore } from "../store/useAuthStore";
 import MovieCard from "../components/MovieCard";
+import ImageModal from "../components/ImageModal";
 
 const FilmPage = () => {
     const { authUser } = useAuthStore();
@@ -17,6 +18,11 @@ const FilmPage = () => {
     const [reviews, setReviews] = useState([]);
     const [loading, setloading] = useState(true);
     const [showSpoiler, setshowSpoiler] = useState(false);
+    const [showFullCast, setShowFullCast] = useState(false);
+    const [showFullCrew, setShowFullCrew] = useState(false);
+    const [showAllReviews, setShowAllReviews] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+
     const navigate = useNavigate();
 
     // console.log(loading);
@@ -40,7 +46,7 @@ const FilmPage = () => {
             window.scrollTo(0, 0);
         }
         scroll();
-    // scrollIntoView({ behavior: "smooth" });
+        // scrollIntoView({ behavior: "smooth" });
 
     }, [movieName]);
 
@@ -54,7 +60,7 @@ const FilmPage = () => {
     )
 
     return (
-        <div className="text-white px-20 py-10 relative">
+        <div className="text-white min-h-dvh px-20 py-10 relative">
             {/* Backdrop Image */}
             <div className="absolute inset-0 -z-10 opacity-40" style={{ backgroundImage: `url(${getMoviePoster(movie.backdrop, "original")})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(10px)' }}></div>
 
@@ -66,9 +72,14 @@ const FilmPage = () => {
                         src={getMoviePoster(movie.poster, "w500")}
                         alt={movie.title}
                         className="w-[200px] h-[300px] md:w-full md:h-auto rounded-lg mx-auto"
+                        onClick={() => setModalOpen(true)}
                     />
-                    <p className="text-gray-400 mt-2">Runtime: {movie.runtime} min</p>
                 </div>
+                <ImageModal 
+                isOpen={modalOpen} 
+                imageUrl={getMoviePoster(movie.poster, "w500")} 
+                onClose={() => setModalOpen(false)}
+            />
 
                 {/* Center Column - Movie Info */}
                 <div className="flex-1 text-center">
@@ -76,6 +87,7 @@ const FilmPage = () => {
                     <p className="text-lg text-gray-400 mt-1">Directed by <span className="text-white">{movie.director}</span></p>
                     <p className="mt-4 text-gray-200 font-medium text-xl">{movie.tagline}</p>
                     <p className="mt-4 text-gray-400 text-lg">{movie.overview}</p>
+                    <p className="text-gray-300 mt-2">Runtime: {movie.runtime} min</p>
                 </div>
                 {/* Right Column - Action Form (Moves Below on Mobile) */}
                 <div className=" text-center md:w-1/4 mt-8 md:mt-0 w-[300px] h-[300px] md:h-auto rounded-lg mx-auto mb-10">
@@ -85,39 +97,60 @@ const FilmPage = () => {
                         </p>
                         <ActionForm movieId={movie.movieId} movieName={movieName} username={username} authUser={authUser} />
                     </div>
-                    <div className="text-center mt-4 gap-2">
-                        <div className="flex justify-center mt-2 text-yellow-500">
-                            <Popcorn />
+                    <div className="text-center mt-4">
+                        <div className="flex items-center justify-center gap-2 mt-2 md:flex-col">
+                            <Popcorn className=" text-yellow-500" />
+                            <p className="text-xl font-bold">{movie.rating}/10</p>
                         </div>
-                        <p className="text-xl font-bold text-center mt-2">{movie.rating}/10</p>
                     </div>
+
                 </div>
+            </div>
+
+            {/* Outer div for mobile only */}
+            <div className="w-[300px] mx-auto mb-10 md:hidden">
+                <div className="mt-4 border-b border-hidden flex justify-center gap-6 pb-2">
+                    {movie.trailer && (
+                        <a
+                            href={movie.trailer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex mt-3 items-center gap-2 text-blue-400 hover:underline"
+                        >
+                            <PlayCircle /> Watch Trailer
+                        </a>
+                    )}
+                </div>
+            </div>
+
+            {/* Direct content for desktop (without outer div) */}
+            <div className="hidden md:block mt-8 border-b border-hidden justify-center gap-6 pb-2">
+                {movie.trailer && (
+                    <a
+                        href={movie.trailer}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex mt-3 items-center gap-2 text-blue-400 hover:underline"
+                    >
+                        <PlayCircle /> Watch Trailer
+                    </a>
+                )}
             </div>
 
 
 
             {/* Mini Navbar */}
             <div className="mt-8 border-b border-gray-700 flex gap-6 text-gray-400 text-lg pb-2">
-                <span className="cursor-pointer hover:text-white">Cast</span>
-                <span className="cursor-pointer hover:text-white">Crew</span>
-                <span className="cursor-pointer hover:text-white">Details</span>
-                <span className="cursor-pointer hover:text-white">Genres</span>
+                <a href="#cast" className=" cursor-pointer hover:underline">Cast</a>
+                <a href="#crew" className="cursor-pointer hover:underline">Crew</a>
+                <a href="#details" className="cursor-pointer hover:underline">Details</a>
+                <a href="#genres" className="cursor-pointer hover:underline">Genres</a>
             </div>
 
             {/* Movie Details */}
-            <div className="mt-6 flex gap-12">
+            <div className="mt-2 flex-1 gap-12">
                 {/* Left - Trailer & Platforms */}
                 <div className="w-1/5">
-                    {movie.trailer && (
-                        <a
-                            href={movie.trailer}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-blue-400 hover:underline"
-                        >
-                            <PlayCircle /> Watch Trailer
-                        </a>
-                    )}
 
                     <div className="mt-4">
                         {Object.entries(movie.platforms || {}).map(([type, providers]) => (
@@ -142,93 +175,117 @@ const FilmPage = () => {
 
 
                 {/* Center - Details */}
-                <div className="flex-1 grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Cast */}
-                    <div>
+
+                    {/* Cast Section */}
+                    <div id="cast" className="mb-6">
                         <h3 className="text-lg font-bold">Cast</h3>
                         <div className="flex flex-wrap gap-2">
-                            {movie.cast.map((actor, i) => {
+                            {movie.cast.slice(0, showFullCast ? movie.cast.length : 10).map((actor, i) => {
                                 const [name, character] = actor.split(" - ");
                                 return (
-                                    <div key={i} className="relative group">
+                                    <div key={i} className="relative group min-w-[80px] text-center">
                                         <span className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-12 bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
                                             {character}
                                         </span>
-                                        <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded cursor-pointer group-hover:text-white">
+                                        <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded cursor-pointer group-hover:text-white inline-block">
                                             {name}
                                         </span>
                                     </div>
                                 );
                             })}
                         </div>
+                        {movie.cast.length > 10 && (
+                            <button onClick={() => setShowFullCast(!showFullCast)} className="text-blue-500 mt-2">
+                                {showFullCast ? "Show Less" : "Show More"}
+                            </button>
+                        )}
                     </div>
 
-                    {/* Crew */}
-                    <div>
+                    {/* Crew Section */}
+                    <div id="crew" className="mb-6">
                         <h3 className="text-lg font-bold">Crew</h3>
                         <div className="flex flex-wrap gap-2">
-                            {movie.crew.map((member, i) => {
+                            {movie.crew.slice(0, showFullCrew ? movie.crew.length : 10).map((member, i) => {
                                 const [job, person] = member.split(" - ");
                                 return (
-                                    <div key={i} className="relative group">
+                                    <div key={i} className="relative group min-w-[80px] text-center">
                                         <span className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-12 bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
                                             {job}
                                         </span>
-                                        <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded cursor-pointer group-hover:text-white">
+                                        <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded cursor-pointer group-hover:text-white inline-block">
                                             {person}
                                         </span>
                                     </div>
                                 );
                             })}
                         </div>
+                        {movie.crew.length > 10 && (
+                            <button onClick={() => setShowFullCrew(!showFullCrew)} className="text-blue-500 mt-2">
+                                {showFullCrew ? "Show Less" : "Show More"}
+                            </button>
+                        )}
                     </div>
 
-                    <div>
+                    {/* Details Section */}
+                    <div id="details" className="mb-6">
                         <h3 className="text-lg font-bold">Details</h3>
                         <p className="text-gray-400">Studio: {movie.details.studio.join(", ")}</p>
                         <p className="text-gray-400">Country: {movie.details.country.join(", ")}</p>
                         <p className="text-gray-400">Language: {movie.details.language.join(", ")}</p>
                     </div>
-                    <div>
+
+                    {/* Genres Section */}
+                    <div id="genres">
                         <h3 className="text-lg font-bold">Genres</h3>
                         {movie.genres.map((genre, i) => (
-                            <span key={i} className="text-gray-400 bg-gray-800 px-2 py-1 rounded mr-2">{genre}</span>
+                            <span key={i} className="text-gray-400 bg-gray-800 px-2 py-1 rounded mr-2 inline-block">
+                                {genre}
+                            </span>
                         ))}
                     </div>
                 </div>
             </div>
 
             {/* Reviews Section */}
-            <h2 className="text-xl mt-6 px-6">User Reviews</h2>
-            <div className="mt-4 px-6">
+            <h2 className="text-xl font-bold mt-6">User Reviews</h2>
+            <div className="mt-4">
                 {reviews.length === 0 ? (
                     <p className="text-gray-500">No reviews yet.</p>
                 ) : (
-                    reviews.map((review) => (
-                        <div key={review.reviewId} className="border-b border-gray-700 py-4">
-                            <div onClick={() => navigate(`/${review.username}/review/${review.reviewId}`)} className="flex items-center gap-2 cursor-pointer">
-
-                                Review by <p className="inline font-semibold">{review.username}</p>
-                                {Number.isInteger(review.rating) && review.rating > 0 && (
-                                    <p className="text-green-500 fill-green-500 flex items-center">
-                                        {[...Array(review.rating)].map((_, i) => (
-                                            <Star key={i} fill="currentColor" className="w-4 h-4" />
-                                        ))}
-                                    </p>
-                                )}
-
-                                {review.liked && <p className="text-orange-400 "><Heart fill="currentColor" className="w-4 h-4" /></p>}
+                    <>
+                        {reviews.slice(0, showAllReviews ? reviews.length : 4).map((review) => (
+                            <div key={review.reviewId} className="border-b border-gray-700 py-4">
+                                <div onClick={() => navigate(`/${review.username}/review/${review.reviewId}`)} className="flex items-center gap-2 cursor-pointer">
+                                    Review by <p className="inline font-semibold">{review.username}</p>
+                                    {Number.isInteger(review.rating) && review.rating > 0 && (
+                                        <p className="text-green-500 fill-green-500 flex items-center">
+                                            {[...Array(review.rating)].map((_, i) => (
+                                                <Star key={i} fill="currentColor" className="w-4 h-4" />
+                                            ))}
+                                        </p>
+                                    )}
+                                    {review.liked && <p className="text-orange-400"><Heart fill="currentColor" className="w-4 h-4" /></p>}
+                                </div>
+                                <p
+                                    className={`text-gray-300 ${review.spoiler && !showSpoiler ? "bg-red-700 text-white p-2 rounded cursor-pointer" : ""}`}
+                                    onClick={() => setshowSpoiler(true)}
+                                >
+                                    {review.spoiler && !showSpoiler ? "⚠ Spoiler Hidden (Click to Reveal)" : review.review}
+                                </p>
                             </div>
-                            <p
-                                className={`text-gray-300 ${review.spoiler && !showSpoiler ? "bg-red-700 text-white p-2 rounded cursor-pointer" : ""}`}
-                                onClick={() => setshowSpoiler(true)}
-                            >
-                                {review.spoiler && !showSpoiler ? "⚠ Spoiler Hidden (Click to Reveal)" : review.review}
-                            </p>
-                        </div>
-                    ))
+                        ))}
+
+                        {reviews.length > 4 && (
+                            <button onClick={() => setShowAllReviews(!showAllReviews)} className="text-blue-500 mt-2">
+                                {showAllReviews ? "Show Less" : "Show More"}
+                            </button>
+                        )}
+                    </>
                 )}
             </div>
+
             <div className="my-6 px-4 sm:px-8 lg:px-48">
                 <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Similar Movies</h2>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">

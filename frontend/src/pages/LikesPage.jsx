@@ -56,7 +56,7 @@ const LikesPage = () => {
     );
 
     return (
-        <div className="my-6 px-4 sm:px-8 lg:px-32">
+        <div className="my-6 px-4 min-h-dvh sm:px-8 lg:px-32">
             <UserCard username={username} profilePic={profilePic} />
             <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">{username}'s Liked Films</h2>
 

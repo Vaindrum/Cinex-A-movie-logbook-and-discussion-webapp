@@ -77,7 +77,7 @@ const ReviewPage = () => {
     if (!review) return <div className="flex items-center justify-center h-screen">Review Not Found</div>;
 
     return (
-        <div className="max-w-2xl mx-auto p-4 space-y-6">
+        <div className="max-w-2xl min-h-dvh mx-auto p-4 space-y-6">
             <div className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg shadow-md">
                 <img src={profilePic} alt="Profile" className="w-10 h-10 rounded-full cursor-pointer" onClick={() => navigate(`/${username}/profile`)} />
                 <h1 className="text-lg">Review by <span className="font-semibold cursor-pointer" onClick={() => navigate(`/${username}/profile`)}>{username}</span></h1>

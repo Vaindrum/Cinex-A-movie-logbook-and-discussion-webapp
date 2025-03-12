@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useState } from 'react';
 import { Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const SettingsPage = () => {
   const {authUser, isUpdatingProfile, updateProfile} = useAuthStore();
@@ -13,6 +14,8 @@ const SettingsPage = () => {
     bio: authUser.bio || null,
     favourites: authUser.favourites || []
   });
+
+  const navigate = useNavigate();
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -54,6 +57,7 @@ const SettingsPage = () => {
   const handleUpdateProfile = async () => {
     try {
       await updateProfile(formData);
+      navigate(`/${authUser.username}/profile`);
     } catch (error) {
       console.error("Profile Update Failed:", error);
     }
@@ -61,7 +65,7 @@ const SettingsPage = () => {
 
 
   return (
-    <div className="max-w-lg mx-auto mt-5 p-6 bg-gray-800 rounded-lg shadow-md text-white">
+    <div className="max-w-lg min-h-dvh mx-auto mt-5 p-6 bg-gray-800 rounded-lg shadow-md text-white">
       <div className="flex flex-col items-center">
         <label htmlFor="imageUpload" className="relative w-32 h-32 md:w-36 md:h-36 cursor-pointer">
           <img src={selectedImage} alt="Profile" className="w-full h-full rounded-full object-cover border-2 border-gray-500" />
